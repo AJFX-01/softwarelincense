@@ -1,2 +1,36 @@
+# Secrets
+.env
+
+# Python / Jupyter
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Editors / OS
+.DS_Store
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Software Heritage license dataset (large, re-downloadable from Zenodo 6379164)
+blobs-**
+license-blobs.csv*
+sample20k/
+
+# Downloaded third-party data (re-created by the build scripts)
+data/external/
+
+# Course material and private drafts
 /objectives_design.tex
 /proposal.tex
+dataset-literature.txt
+assignment3.txt
+
+# Working copies of hand-labelled sheets (canonical copies live in data/processed/nli/)
+/review_sample.csv
+/relabel_sample.csv*
+/disagreements.csv
+/agreement_reviewer*.csv

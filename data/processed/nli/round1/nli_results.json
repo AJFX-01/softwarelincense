@@ -1,0 +1,178 @@
+{
+  "roberta-large-mnli": {
+    "auto": {
+      "n": 738,
+      "accuracy": 0.76,
+      "macro_f1": 0.755,
+      "per_class": {
+        "entailment": {
+          "precision": 0.936,
+          "recall": 0.533,
+          "f1": 0.679,
+          "support": 246
+        },
+        "neutral": {
+          "precision": 0.63,
+          "recall": 0.837,
+          "f1": 0.719,
+          "support": 246
+        },
+        "contradiction": {
+          "precision": 0.827,
+          "recall": 0.911,
+          "f1": 0.867,
+          "support": 246
+        }
+      },
+      "confusion": {
+        "entailment": {
+          "entailment": 131,
+          "neutral": 103,
+          "contradiction": 12
+        },
+        "neutral": {
+          "entailment": 5,
+          "neutral": 206,
+          "contradiction": 35
+        },
+        "contradiction": {
+          "entailment": 4,
+          "neutral": 18,
+          "contradiction": 224
+        }
+      }
+    },
+    "human": {
+      "n": 146,
+      "accuracy": 0.753,
+      "macro_f1": 0.748,
+      "per_class": {
+        "entailment": {
+          "precision": 0.926,
+          "recall": 0.532,
+          "f1": 0.676,
+          "support": 47
+        },
+        "neutral": {
+          "precision": 0.641,
+          "recall": 0.804,
+          "f1": 0.713,
+          "support": 51
+        },
+        "contradiction": {
+          "precision": 0.8,
+          "recall": 0.917,
+          "f1": 0.854,
+          "support": 48
+        }
+      },
+      "confusion": {
+        "entailment": {
+          "entailment": 25,
+          "neutral": 20,
+          "contradiction": 2
+        },
+        "neutral": {
+          "entailment": 1,
+          "neutral": 41,
+          "contradiction": 9
+        },
+        "contradiction": {
+          "entailment": 1,
+          "neutral": 3,
+          "contradiction": 44
+        }
+      }
+    }
+  },
+  "deberta-v3-large-nli": {
+    "auto": {
+      "n": 738,
+      "accuracy": 0.783,
+      "macro_f1": 0.782,
+      "per_class": {
+        "entailment": {
+          "precision": 0.972,
+          "recall": 0.561,
+          "f1": 0.711,
+          "support": 246
+        },
+        "neutral": {
+          "precision": 0.626,
+          "recall": 0.927,
+          "f1": 0.748,
+          "support": 246
+        },
+        "contradiction": {
+          "precision": 0.914,
+          "recall": 0.862,
+          "f1": 0.887,
+          "support": 246
+        }
+      },
+      "confusion": {
+        "entailment": {
+          "entailment": 138,
+          "neutral": 103,
+          "contradiction": 5
+        },
+        "neutral": {
+          "entailment": 3,
+          "neutral": 228,
+          "contradiction": 15
+        },
+        "contradiction": {
+          "entailment": 1,
+          "neutral": 33,
+          "contradiction": 212
+        }
+      }
+    },
+    "human": {
+      "n": 146,
+      "accuracy": 0.829,
+      "macro_f1": 0.83,
+      "per_class": {
+        "entailment": {
+          "precision": 0.969,
+          "recall": 0.66,
+          "f1": 0.785,
+          "support": 47
+        },
+        "neutral": {
+          "precision": 0.691,
+          "recall": 0.922,
+          "f1": 0.79,
+          "support": 51
+        },
+        "contradiction": {
+          "precision": 0.935,
+          "recall": 0.896,
+          "f1": 0.915,
+          "support": 48
+        }
+      },
+      "confusion": {
+        "entailment": {
+          "entailment": 31,
+          "neutral": 16,
+          "contradiction": 0
+        },
+        "neutral": {
+          "entailment": 1,
+          "neutral": 47,
+          "contradiction": 3
+        },
+        "contradiction": {
+          "entailment": 0,
+          "neutral": 5,
+          "contradiction": 43
+        }
+      }
+    }
+  },
+  "auto_label_accuracy_vs_human": {
+    "n": 146,
+    "agreement": 0.952
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "B relabels A's rows": {
+    "rows": 20,
+    "scored": 20,
+    "agreement": 0.9,
+    "kappa": 0.844,
+    "disagreements": [
+      {
+        "pair_id": "N0569",
+        "first": "entailment",
+        "second": "neutral"
+      },
+      {
+        "pair_id": "N0115",
+        "first": "entailment",
+        "second": "neutral"
+      }
+    ]
+  },
+  "A relabels B's rows": {
+    "rows": 20,
+    "scored": 20,
+    "agreement": 0.95,
+    "kappa": 0.921,
+    "disagreements": [
+      {
+        "pair_id": "N0013",
+        "first": "neutral",
+        "second": "entailment"
+      }
+    ]
+  },
+  "overall": {
+    "scored": 40,
+    "agreement": 0.925,
+    "kappa": 0.886,
+    "confusion_first_vs_second": {
+      "entailment": {
+        "entailment": 15,
+        "neutral": 2,
+        "contradiction": 0
+      },
+      "neutral": {
+        "entailment": 1,
+        "neutral": 9,
+        "contradiction": 0
+      },
+      "contradiction": {
+        "entailment": 0,
+        "neutral": 0,
+        "contradiction": 13
+      }
+    }
+  }
+}

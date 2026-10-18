@@ -1,0 +1,7 @@
+requests>=2.31
+numpy==2.1.0  # arrays
+django
+pyqt5
+black[jupyter]
+-r other.txt
+this-package-does-not-exist-xyz
