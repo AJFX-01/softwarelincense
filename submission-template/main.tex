@@ -1,0 +1,159 @@
+\documentclass[sigconf,balance=false]{acmart}
+\usepackage{popets}
+
+% Copyright
+\setcopyright{popets}
+\copyrightyear{YYYY}
+
+% Issue info
+\acmYear{YYYY}
+\acmVolume{YYYY}
+\acmNumber{X}
+\acmDOI{XXXXXXX.XXXXXXX}
+\acmISBN{}
+\acmConference{Proceedings on Privacy Enhancing Technologies}
+\settopmatter{printacmref=false,printccs=false,printfolios=true}
+
+
+\begin{document}
+
+\title[Privacy by Design, Privacy by Expectation]{Privacy by Design, Privacy by Expectation: Aligning Developer Practices and User Expectations in Canadian mHealth Applications}
+
+\author{Opeyemi Ajegbomogun}
+\affiliation{%
+  \institution{University of Calgary}
+  \city{Calgary}
+  \country{Canada}}
+\email{opeyemi.ajegbomogun@ucalgary.ca}
+
+\renewcommand{\shortauthors}{Ajegbomogun}
+
+\begin{abstract}
+Mobile health (mHealth) applications now mediate care for millions of people,
+collecting uniquely sensitive information such as medication schedules, mood
+logs, and location data, often under consumer-app privacy norms rather than
+clinical-grade safeguards. Prior work has repeatedly found troubling gaps
+between what these apps claim and what they actually do: flawed consent and
+deletion mechanisms, covert data collection in women's health
+apps~\cite{malki2024exploring}, and third-party SDK risks that persist even
+as platform policies improve, developers often relying on app-market
+rejection, not understanding their SDKs'
+behavior~\cite{alomar2025effect,alomar2022developers}. Most of this evidence
+comes from one vantage point at a time: auditing technical behavior and
+policy text, or surveying only one side of the relationship, developers or
+users, rarely both, and almost always within the U.S.\ or EU regulatory
+context privacy research still defaults to~\cite{sharma2026local}. This
+leaves a practice-relevant question: when
+developers believe they are building a privacy-respecting app, does that
+match what the people actually using it expect, and does either account
+match what the app is observed to do? The closest analogue, a recent study
+of military-marketed apps, pairs technical analysis with a user study and
+finds clear misalignment, but without bringing developers' self-reported
+intent into the comparison~\cite{shinkle2026noprivacy}. This study addresses
+that remaining gap for the Canadian mHealth ecosystem, governed by PIPEDA
+rather than GDPR, through a triangulated, mixed-methods design spanning four
+sources: a structured developer survey on reported privacy-by-design
+practices and the factors that help or hinder adopting them; a structured
+user survey and follow-up focus group on Canadian users' privacy
+expectations, concerns, and preferences; a thematic review of selected
+apps' privacy policies; and a corpus of roughly 1.45 million app store
+reviews, filtered and classified at scale using a natural-language-inference-and-large-language-model
+pipeline adapted from recent software-engineering
+research~\cite{ansari2026coseto}, surfacing privacy- and security-relevant
+experiences, defined against a reconciled privacy
+taxonomy~\cite{solove2006taxonomy,deng2011linddun}, that surveys alone would
+miss. Developer and user data are coded against a jointly developed
+thematic codebook, enabling direct comparison across sources rather than
+separate, siloed analyses. We anticipate both convergence, such as shared
+concern over opaque third-party data sharing, and meaningful divergence,
+particularly where developers consider informal or architectural privacy
+measures sufficient but users do not perceive or trust them as such. The
+contribution is twofold: an empirically grounded account of where developer
+intent and user expectation align or diverge in an under-studied regulatory
+context, and a reusable methodology for triangulating self-reported and
+observed privacy evidence across stakeholder groups in mobile health
+research.
+\end{abstract}
+
+\keywords{mHealth, privacy by design, user privacy expectations, Canadian privacy law, PIPEDA, app store reviews, thematic analysis}
+
+\maketitle
+
+\section{Target Journals}
+\label{sec:journals}
+
+Table~\ref{tab:journals} compares three venues at the intersection of
+software engineering, privacy, and security that fit this work's scope.
+
+\begin{table}[h]
+  \caption{Journal Selection Matrix}
+  \label{tab:journals}
+  \small
+  \begin{tabular}{p{0.16\linewidth}p{0.24\linewidth}p{0.24\linewidth}p{0.24\linewidth}}
+    \toprule
+     & \textbf{IEEE TDSC} & \textbf{ACM TOPS} & \textbf{PoPETs (Primary)} \\
+    \midrule
+    Full name &
+      IEEE Trans.\ on Dependable and Secure Computing &
+      ACM Trans.\ on Privacy and Security &
+      Proceedings on Privacy Enhancing Technologies \\
+    \addlinespace
+    Scope &
+      Dependability, fault tolerance, and security of computing systems &
+      Privacy and security research spanning systems, crypto, and HCI &
+      Practical and theoretical privacy-enhancing technologies, real-world systems, privacy engineering \\
+    \addlinespace
+    Access model &
+      Hybrid; optional OA fee &
+      Hybrid; optional OA fee &
+      Diamond open access (free to publish, free to read) \\
+    \addlinespace
+    Review cycle &
+      Continuous submission; several months &
+      Continuous submission; several months, revise-and-resubmit &
+      Quarterly; decision within $\sim$2 months; Accept/Revise/Reject \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Primary Target: Proceedings on Privacy Enhancing Technologies (PoPETs)}
+
+PoPETs publishes novel, practical, and theoretical research into
+privacy-enhancing technologies, real-world systems applications, and
+software engineering privacy frameworks, making it a strong fit for a study
+that triangulates developer practice, user expectation, and observed
+behavior. Unlike IEEE TDSC and ACM TOPS, which remain hybrid subscription
+venues with optional author-pays open access, PoPETs is Diamond Open
+Access, fully funded by the PETS community, removing both the paywall and
+the open-access fee barrier. Its quarterly submission model offers a
+predictable, fast review cycle, with decisions typically within two months
+and standard journal-style revision options (Accept, Revise, or Reject),
+which fits a graduation or project timeline better than a continuous,
+open-ended review process.
+
+Per the official PoPETs author guidelines, the abstract must appear
+unindexed on the first page as a single, cohesive paragraph within the
+\texttt{abstract} environment of the mandatory PoPETs \LaTeX\ template
+(satisfied above), written for a broad, non-specialist computer science
+audience, and the first page must explicitly connect the work to
+real-world privacy applications, which this abstract does by grounding the
+research gap in concrete, cited findings from the mHealth privacy
+literature rather than an abstract framing of the problem.
+
+\subsection{Citation Style}
+
+PoPETs uses a numeric citation style within an ACM/IEEE hybrid
+presentation format, implemented here via
+\texttt{ACM-Reference-Format}\slash \texttt{acmart}, as already configured
+in this template. Submissions undergo double-blind review, so self-cited
+prior work must be referenced in the third person rather than as ``our
+previous work.'' There is no page limit on the bibliography; comprehensive
+citation is expected.
+
+%%
+%% The next two lines define the bibliography style to be used, and
+%% the bibliography file.
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+
+\end{document}
