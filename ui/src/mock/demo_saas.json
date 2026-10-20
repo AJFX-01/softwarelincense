@@ -1,0 +1,198 @@
+{
+  "input": {
+    "description": "I'm building an analytics library that companies will run as a hosted SaaS. I want any improvements, including ones made by companies running it on their servers, to come back to the community.",
+    "manifest": null
+  },
+  "model": "openai/gpt-oss-120b",
+  "dependencies": [],
+  "requirements": [
+    {
+      "text": "Improvements, including those made by companies running it as a hosted SaaS, should be contributed back to the community.",
+      "source": "description"
+    }
+  ],
+  "conflicts": [],
+  "clarifying_questions": [
+    "Are there any third\u2011party dependencies with copyleft licenses that could impose additional licensing constraints?"
+  ],
+  "recommendations": [
+    {
+      "rank": 1,
+      "spdx_id": "AGPL-3.0",
+      "title": "GNU Affero General Public License v3.0",
+      "reason": "Provides strong network copyleft ensuring that any modifications used to offer a SaaS must be released back to the community.",
+      "claims": [
+        {
+          "text": "All of your improvements must be released under the AGPL for anyone who receives the software.",
+          "clause_id": "C4",
+          "quote": "You must license the entire work, as a whole, under this License to anyone who comes into possession of a copy.",
+          "quote_found": true,
+          "status": "unverified",
+          "reason": "NLI: neutral (1.00)",
+          "nli": {
+            "entailment": 0.001,
+            "neutral": 0.996,
+            "contradiction": 0.003
+          },
+          "clause_text": "5. Conveying Modified Source Versions. You may convey a work based on the Program, or the modifications to produce it from the Program, in the form of source code under the terms of section 4, provided that you also meet all of these conditions: c) You must license the entire work, as a whole, under this License to anyone who comes into possession of a copy. This License will therefore apply, along with any applicable section 7 additional terms, to the whole of the work, and all its parts, regardless of how they are packaged. This License gives no permission to license the work in any other way, but it does not invalidate such permission if you have separately received it."
+        },
+        {
+          "text": "If you run the program as a SaaS, you must let remote users download the source of your version at no cost.",
+          "clause_id": "C7",
+          "quote": "your modified version must prominently offer all users interacting with it remotely through a computer network (if your version supports such interaction) an opportunity to receive the Corresponding Source of your version by providing access to the Corresponding Source from a network server at no charge, through some standard or customary means of facilitating copying of software.",
+          "quote_found": true,
+          "status": "unverified",
+          "reason": "NLI: neutral (0.97)",
+          "nli": {
+            "entailment": 0.03,
+            "neutral": 0.969,
+            "contradiction": 0.001
+          },
+          "clause_text": "13. Remote Network Interaction; Use with the GNU General Public License. Notwithstanding any other provision of this License, if you modify the Program, your modified version must prominently offer all users interacting with it remotely through a computer network (if your version supports such interaction) an opportunity to receive the Corresponding Source of your version by providing access to the Corresponding Source from a network server at no charge, through some standard or customary means of facilitating copying of software. This Corresponding Source shall include the Corresponding Source for any work covered by version 3 of the GNU General Public License that is incorporated pursuant to the following paragraph."
+        },
+        {
+          "text": "When you distribute compiled binaries, you must also make the source code freely available in the same place.",
+          "clause_id": "C5",
+          "quote": "offer equivalent access to the Corresponding Source in the same way through the same place at no further charge.",
+          "quote_found": true,
+          "status": "verified",
+          "reason": "NLI: entailment (0.71)",
+          "nli": {
+            "entailment": 0.712,
+            "neutral": 0.098,
+            "contradiction": 0.189
+          },
+          "clause_text": "6. Conveying Non-Source Forms. You may convey a covered work in object code form under the terms of sections 4 and 5, provided that you also convey the machine-readable Corresponding Source under the terms of this License, in one of these ways: d) Convey the object code by offering access from a designated place (gratis or for a charge), and offer equivalent access to the Corresponding Source in the same way through the same place at no further charge. You need not require recipients to copy the Corresponding Source along with the object code. If the place to copy the object code is a network server, the Corresponding Source may be on a different server (operated by you or a third party) that supports equivalent copying facilities, provided you maintain clear directions next to the object code saying where to find the Corresponding Source. Regardless of what server hosts the Corresponding Source, you remain obligated to ensure that it is available for as long as needed to satisfy these requirements."
+        }
+      ],
+      "note": null
+    },
+    {
+      "rank": 2,
+      "spdx_id": "GPL-3.0",
+      "title": "GNU General Public License v3.0",
+      "reason": "Strong copyleft that requires source code distribution of derived works, encouraging contributions when the library is redistributed.",
+      "claims": [
+        {
+          "text": "If you distribute a modified version, you must license the whole work under the GPL so anyone receiving it gets the same rights.",
+          "clause_id": "C4",
+          "quote": "You must license the entire work, as a whole, under this License to anyone who comes into possession of a copy. This License will therefore apply, along with any applicable section 7 additional terms, to the whole of the work, and all its parts, regardless of how they are packaged.",
+          "quote_found": true,
+          "status": "unverified",
+          "reason": "NLI: neutral (0.99)",
+          "nli": {
+            "entailment": 0.008,
+            "neutral": 0.992,
+            "contradiction": 0.0
+          },
+          "clause_text": "5. Conveying Modified Source Versions. You may convey a work based on the Program, or the modifications to produce it from the Program, in the form of source code under the terms of section 4, provided that you also meet all of these conditions: c) You must license the entire work, as a whole, under this License to anyone who comes into possession of a copy. This License will therefore apply, along with any applicable section 7 additional terms, to the whole of the work, and all its parts, regardless of how they are packaged. This License gives no permission to license the work in any other way, but it does not invalidate such permission if you have separately received it."
+        },
+        {
+          "text": "When you share a modified version, you must include a clear notice of the changes and the date.",
+          "clause_id": "C3",
+          "quote": "The work must carry prominent notices stating that you modified it, and giving a relevant date.",
+          "quote_found": true,
+          "status": "verified",
+          "reason": "NLI: entailment (1.00)",
+          "nli": {
+            "entailment": 0.998,
+            "neutral": 0.002,
+            "contradiction": 0.0
+          },
+          "clause_text": "5. Conveying Modified Source Versions. You may convey a work based on the Program, or the modifications to produce it from the Program, in the form of source code under the terms of section 4, provided that you also meet all of these conditions: a) The work must carry prominent notices stating that you modified it, and giving a relevant date."
+        },
+        {
+          "text": "If you provide compiled code, you must also make the full source code available for free at the same location.",
+          "clause_id": "C5",
+          "quote": "Convey the object code by offering access from a designated place (gratis or for a charge), and offer equivalent access to the Corresponding Source in the same way through the same place at no further charge.",
+          "quote_found": true,
+          "status": "verified",
+          "reason": "NLI: entailment (0.89)",
+          "nli": {
+            "entailment": 0.885,
+            "neutral": 0.057,
+            "contradiction": 0.058
+          },
+          "clause_text": "6. Conveying Non-Source Forms. You may convey a covered work in object code form under the terms of sections 4 and 5, provided that you also convey the machine-readable Corresponding Source under the terms of this License, in one of these ways: d) Convey the object code by offering access from a designated place (gratis or for a charge), and offer equivalent access to the Corresponding Source in the same way through the same place at no further charge. You need not require recipients to copy the Corresponding Source along with the object code. If the place to copy the object code is a network server, the Corresponding Source may be on a different server (operated by you or a third party) that supports equivalent copying facilities, provided you maintain clear directions next to the object code saying where to find the Corresponding Source. Regardless of what server hosts the Corresponding Source, you remain obligated to ensure that it is available for as long as needed to satisfy these requirements."
+        },
+        {
+          "text": "Contributors give you a royalty\u2011free patent license to use and distribute their contributed improvements.",
+          "clause_id": "C6",
+          "quote": "Each contributor grants you a non-exclusive, worldwide, royalty-free patent license under the contributor's essential patent claims, to make, use, sell, offer for sale, import and otherwise run, modify and propagate the contents of its contributor version.",
+          "quote_found": true,
+          "status": "verified",
+          "reason": "NLI: entailment (0.98)",
+          "nli": {
+            "entailment": 0.98,
+            "neutral": 0.019,
+            "contradiction": 0.0
+          },
+          "clause_text": "Each contributor grants you a non-exclusive, worldwide, royalty-free patent license under the contributor's essential patent claims, to make, use, sell, offer for sale, import and otherwise run, modify and propagate the contents of its contributor version."
+        }
+      ],
+      "note": "Explanation regenerated once after failed verification."
+    },
+    {
+      "rank": 3,
+      "spdx_id": "MPL-2.0",
+      "title": "Mozilla Public License 2.0",
+      "reason": "A weak copyleft license that obliges sharing modifications to MPL\u2011covered files while allowing broader use in larger projects.",
+      "claims": [
+        {
+          "text": "The MPL requires you to release any source\u2011code modifications under the same license whenever you distribute them.",
+          "clause_id": "C4",
+          "quote": "All distribution of Covered Software in Source Code Form, including any Modifications that You create or to which You contribute, must be under the terms of this License.",
+          "quote_found": true,
+          "status": "verified",
+          "reason": "NLI: entailment (0.84)",
+          "nli": {
+            "entailment": 0.844,
+            "neutral": 0.154,
+            "contradiction": 0.002
+          },
+          "clause_text": "3. Responsibilities ------------------- 3.1. Distribution of Source Form All distribution of Covered Software in Source Code Form, including any Modifications that You create or to which You contribute, must be under the terms of this License. You must inform recipients that the Source Code Form of the Covered Software is governed by the terms of this License, and how they can obtain a copy of this License. You may not attempt to alter or restrict the recipients' rights in the Source Code Form."
+        },
+        {
+          "text": "When you ship an executable, you may use other terms for it but you cannot restrict recipients' rights to the underlying source code.",
+          "clause_id": "C5",
+          "quote": "You may distribute such Executable Form under the terms of this License, or sublicense it under different terms, provided that the license for the Executable Form does not attempt to limit or alter the recipients' rights in the Source Code Form under this License.",
+          "quote_found": true,
+          "status": "verified",
+          "reason": "NLI: entailment (1.00)",
+          "nli": {
+            "entailment": 0.997,
+            "neutral": 0.003,
+            "contradiction": 0.0
+          },
+          "clause_text": "3.2. Distribution of Executable Form If You distribute Covered Software in Executable Form then: (b) You may distribute such Executable Form under the terms of this License, or sublicense it under different terms, provided that the license for the Executable Form does not attempt to limit or alter the recipients' rights in the Source Code Form under this License."
+        },
+        {
+          "text": "You must keep all existing license notices intact in any source code you share.",
+          "clause_id": "C6",
+          "quote": "You may not remove or alter the substance of any license notices (including copyright notices, patent notices, disclaimers of warranty, or limitations of liability) contained within the Source Code Form of the Covered Software.",
+          "quote_found": true,
+          "status": "unverified",
+          "reason": "NLI: neutral (0.99)",
+          "nli": {
+            "entailment": 0.007,
+            "neutral": 0.992,
+            "contradiction": 0.0
+          },
+          "clause_text": "3.4. Notices You may not remove or alter the substance of any license notices (including copyright notices, patent notices, disclaimers of warranty, or limitations of liability) contained within the Source Code Form of the Covered Software, except that You may alter any license notices to the extent required to remedy known factual inaccuracies."
+        }
+      ],
+      "note": null
+    }
+  ],
+  "usage": {
+    "openai/gpt-oss-120b input": 10054,
+    "openai/gpt-oss-120b output": 6481
+  },
+  "timings": {
+    "dependency_lookup_s": 0.0,
+    "stage1_s": 4.0,
+    "stage2_and_verify_s": 311.8,
+    "total_s": 315.7
+  },
+  "disclaimer": "Explanations are based on license text only. This is not legal advice."
+}

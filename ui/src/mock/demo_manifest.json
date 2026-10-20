@@ -1,0 +1,235 @@
+{
+  "input": {
+    "description": "A desktop app for small clinics to manage appointments. I'd like to be able to sell it.",
+    "manifest": "examples/requirements.txt"
+  },
+  "model": "openai/gpt-oss-120b",
+  "dependencies": [
+    {
+      "name": "black",
+      "ecosystem": "pypi",
+      "license": "MIT",
+      "declared": "MIT",
+      "in_catalogue": true
+    },
+    {
+      "name": "django",
+      "ecosystem": "pypi",
+      "license": "BSD-3-Clause",
+      "declared": "BSD-3-Clause",
+      "in_catalogue": true
+    },
+    {
+      "name": "numpy",
+      "ecosystem": "pypi",
+      "license": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+      "declared": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+      "in_catalogue": false
+    },
+    {
+      "name": "pyqt5",
+      "ecosystem": "pypi",
+      "license": "GPL-3.0-only",
+      "declared": "GPL v3",
+      "in_catalogue": true
+    },
+    {
+      "name": "requests",
+      "ecosystem": "pypi",
+      "license": "Apache-2.0",
+      "declared": "Apache-2.0",
+      "in_catalogue": true
+    },
+    {
+      "name": "this-package-does-not-exist-xyz",
+      "ecosystem": "pypi",
+      "license": null,
+      "declared": "not found on PyPI (404)",
+      "in_catalogue": false
+    }
+  ],
+  "requirements": [
+    {
+      "text": "Must allow commercial distribution and sale.",
+      "source": "description"
+    },
+    {
+      "text": "Project must be licensed under GPL-3.0 or a compatible license due to GPL-3.0-only dependency.",
+      "source": "dependencies"
+    }
+  ],
+  "conflicts": [
+    {
+      "dependency": "pyqt5",
+      "dependency_license": "GPL-3.0-only",
+      "issue": "Strong copyleft requires the project to be licensed under GPL-3.0 or a compatible license, limiting permissible licenses."
+    }
+  ],
+  "clarifying_questions": [],
+  "recommendations": [
+    {
+      "rank": 1,
+      "spdx_id": "GPL-3.0",
+      "title": "GNU General Public License v3.0",
+      "reason": "Satisfies commercial sale and meets the GPL-3.0-only requirement of pyqt5 by using the same license.",
+      "claims": [
+        {
+          "text": "You may charge any price or no price for each copy you distribute, and you can also sell support or warranty services.",
+          "clause_id": "C2",
+          "quote": "You may charge any price or no price for each copy that you convey, and you may offer support or warranty protection for a fee.",
+          "quote_found": true,
+          "status": "verified",
+          "reason": "NLI: entailment (0.99)",
+          "nli": {
+            "entailment": 0.994,
+            "neutral": 0.006,
+            "contradiction": 0.0
+          },
+          "clause_text": "You may charge any price or no price for each copy that you convey, and you may offer support or warranty protection for a fee."
+        },
+        {
+          "text": "Any work you convey must be licensed as a whole under GPL\u20113.0.",
+          "clause_id": "C4",
+          "quote": "You must license the entire work, as a whole, under this License to anyone who comes into possession of a copy. This License will therefore apply, along with any applicable section 7 additional terms, to the whole of the work, and all its parts, regardless of how they are packaged.",
+          "quote_found": true,
+          "status": "unverified",
+          "reason": "NLI: neutral (1.00)",
+          "nli": {
+            "entailment": 0.0,
+            "neutral": 0.999,
+            "contradiction": 0.001
+          },
+          "clause_text": "5. Conveying Modified Source Versions. You may convey a work based on the Program, or the modifications to produce it from the Program, in the form of source code under the terms of section 4, provided that you also meet all of these conditions: c) You must license the entire work, as a whole, under this License to anyone who comes into possession of a copy. This License will therefore apply, along with any applicable section 7 additional terms, to the whole of the work, and all its parts, regardless of how they are packaged. This License gives no permission to license the work in any other way, but it does not invalidate such permission if you have separately received it."
+        },
+        {
+          "text": "When distributing binaries, you must also make the corresponding source code available for free at the same location.",
+          "clause_id": "C5",
+          "quote": "Convey the object code by offering access from a designated place (gratis or for a charge), and offer equivalent access to the Corresponding Source in the same way through the same place at no further charge.",
+          "quote_found": true,
+          "status": "verified",
+          "reason": "NLI: entailment (0.99)",
+          "nli": {
+            "entailment": 0.989,
+            "neutral": 0.008,
+            "contradiction": 0.003
+          },
+          "clause_text": "6. Conveying Non-Source Forms. You may convey a covered work in object code form under the terms of sections 4 and 5, provided that you also convey the machine-readable Corresponding Source under the terms of this License, in one of these ways: d) Convey the object code by offering access from a designated place (gratis or for a charge), and offer equivalent access to the Corresponding Source in the same way through the same place at no further charge. You need not require recipients to copy the Corresponding Source along with the object code. If the place to copy the object code is a network server, the Corresponding Source may be on a different server (operated by you or a third party) that supports equivalent copying facilities, provided you maintain clear directions next to the object code saying where to find the Corresponding Source. Regardless of what server hosts the Corresponding Source, you remain obligated to ensure that it is available for as long as needed to satisfy these requirements."
+        }
+      ],
+      "note": null
+    },
+    {
+      "rank": 2,
+      "spdx_id": "AGPL-3.0",
+      "title": "GNU Affero General Public License v3.0",
+      "reason": "Also compatible with GPL-3.0-only and permits commercial distribution while extending source\u2011code availability for network use.",
+      "claims": [
+        {
+          "text": "You can sell copies of the software for any price you choose.",
+          "clause_id": "C2",
+          "quote": "You may charge any price or no price for each copy that you convey, and you may offer support or warranty protection for a fee.",
+          "quote_found": true,
+          "status": "unverified",
+          "reason": "NLI: neutral (0.99)",
+          "nli": {
+            "entailment": 0.011,
+            "neutral": 0.989,
+            "contradiction": 0.0
+          },
+          "clause_text": "You may charge any price or no price for each copy that you convey, and you may offer support or warranty protection for a fee."
+        },
+        {
+          "text": "All of your code, including modifications, must be distributed under the AGPL\u20113.0, which satisfies the GPL\u20113.0\u2011compatible requirement.",
+          "clause_id": "C4",
+          "quote": "You must license the entire work, as a whole, under this License to anyone who comes into possession of a copy. This License will therefore apply, along with any applicable section 7 additional terms, to the whole of the work, and all its parts, regardless of how they are packaged.",
+          "quote_found": true,
+          "status": "unverified",
+          "reason": "NLI: neutral (0.99)",
+          "nli": {
+            "entailment": 0.001,
+            "neutral": 0.988,
+            "contradiction": 0.01
+          },
+          "clause_text": "5. Conveying Modified Source Versions. You may convey a work based on the Program, or the modifications to produce it from the Program, in the form of source code under the terms of section 4, provided that you also meet all of these conditions: c) You must license the entire work, as a whole, under this License to anyone who comes into possession of a copy. This License will therefore apply, along with any applicable section 7 additional terms, to the whole of the work, and all its parts, regardless of how they are packaged. This License gives no permission to license the work in any other way, but it does not invalidate such permission if you have separately received it."
+        },
+        {
+          "text": "When you distribute compiled binaries, you must also make the full source code available at no extra cost.",
+          "clause_id": "C5",
+          "quote": "Convey the object code by offering access from a designated place (gratis or for a charge), and offer equivalent access to the Corresponding Source in the same way through the same place at no further charge.",
+          "quote_found": true,
+          "status": "contradicted",
+          "reason": "NLI: contradiction (0.58)",
+          "nli": {
+            "entailment": 0.376,
+            "neutral": 0.04,
+            "contradiction": 0.584
+          },
+          "clause_text": "6. Conveying Non-Source Forms. You may convey a covered work in object code form under the terms of sections 4 and 5, provided that you also convey the machine-readable Corresponding Source under the terms of this License, in one of these ways: d) Convey the object code by offering access from a designated place (gratis or for a charge), and offer equivalent access to the Corresponding Source in the same way through the same place at no further charge. You need not require recipients to copy the Corresponding Source along with the object code. If the place to copy the object code is a network server, the Corresponding Source may be on a different server (operated by you or a third party) that supports equivalent copying facilities, provided you maintain clear directions next to the object code saying where to find the Corresponding Source. Regardless of what server hosts the Corresponding Source, you remain obligated to ensure that it is available for as long as needed to satisfy these requirements."
+        }
+      ],
+      "note": null
+    },
+    {
+      "rank": 3,
+      "spdx_id": "EPL-2.0",
+      "title": "Eclipse Public License 2.0",
+      "reason": "Provides a commercially\u2011friendly copyleft license that is compatible with GPL\u20113.0, allowing you to sell the software while respecting pyqt5\u2019s license.",
+      "claims": [
+        {
+          "text": "You may distribute and sell the program commercially.",
+          "clause_id": "C5",
+          "quote": "While this license is intended to facilitate the commercial use of the Program, the Contributor who includes the Program in a commercial product offering should do so in a manner which does not create potential liability for other Contributors.",
+          "quote_found": true,
+          "status": "verified",
+          "reason": "NLI: entailment (1.00)",
+          "nli": {
+            "entailment": 0.998,
+            "neutral": 0.001,
+            "contradiction": 0.001
+          },
+          "clause_text": "3.2 When the Program is Distributed as Source Code: 4. COMMERCIAL DISTRIBUTION Commercial distributors of software may accept certain responsibilities with respect to end users, business partners and the like. While this license is intended to facilitate the commercial use of the Program, the Contributor who includes the Program in a commercial product offering should do so in a manner which does not create potential liability for other Contributors. Therefore, if a Contributor includes the Program in a commercial product offering, such Contributor (\"Commercial Contributor\") hereby agrees to defend and indemnify every other Contributor (\"Indemnified Contributor\") against any losses, damages and costs (collectively \"Losses\") arising from claims, lawsuits and other legal actions brought by a third party against the Indemnified Contributor to the extent caused by the acts or omissions of such Commercial Contributor in connection with its distribution of the Program in a commercial product offering. The obligations in this section do not apply to any claims or Losses relating to any actual or alleged intellectual property infringement. In order to qualify, an Indemnified Contributor must: a) promptly notify the Commercial Contributor in writing of such claim, and b) allow the Commercial Contributor to control, and cooperate with the Commercial Contributor in, the defense and any related settlement negotiations. The Indemnified Contributor may participate in any such claim at its own expense."
+        },
+        {
+          "text": "You receive a royalty\u2011free patent license to make, use, sell, offer to sell, and import the contributions.",
+          "clause_id": "C2",
+          "quote": "Subject to the terms of this Agreement, each Contributor hereby grants Recipient a non-exclusive, worldwide, royalty-free patent license under Licensed Patents to make, use, sell, offer to sell, import and otherwise transfer the Contribution of such Contributor, if any, in Source Code or other form.",
+          "quote_found": true,
+          "status": "verified",
+          "reason": "NLI: entailment (1.00)",
+          "nli": {
+            "entailment": 0.999,
+            "neutral": 0.001,
+            "contradiction": 0.0
+          },
+          "clause_text": "b) Subject to the terms of this Agreement, each Contributor hereby grants Recipient a non-exclusive, worldwide, royalty-free patent license under Licensed Patents to make, use, sell, offer to sell, import and otherwise transfer the Contribution of such Contributor, if any, in Source Code or other form. This patent license shall apply to the combination of the Contribution and the Program if, at the time the Contribution is added by the Contributor, such addition of the Contribution causes such combination to be covered by the Licensed Patents. The patent license shall not apply to any other combinations which include the Contribution. No hardware per se is licensed hereunder."
+        },
+        {
+          "text": "When you distribute the program you must also provide the source code and a statement that it is available under this agreement.",
+          "clause_id": "C3",
+          "quote": "the Program must also be made available as Source Code, in accordance with section 3.2, and the Contributor must accompany the Program with a statement that the Source Code for the Program is available under this Agreement",
+          "quote_found": true,
+          "status": "verified",
+          "reason": "NLI: entailment (0.99)",
+          "nli": {
+            "entailment": 0.993,
+            "neutral": 0.006,
+            "contradiction": 0.001
+          },
+          "clause_text": "3. REQUIREMENTS 3.1 If a Contributor Distributes the Program in any form, then: a) the Program must also be made available as Source Code, in accordance with section 3.2, and the Contributor must accompany the Program with a statement that the Source Code for the Program is available under this Agreement, and informs Recipients how to obtain it in a reasonable manner on or through a medium customarily used for software exchange; and"
+        }
+      ],
+      "note": null
+    }
+  ],
+  "usage": {
+    "openai/gpt-oss-120b input": 8956,
+    "openai/gpt-oss-120b output": 5667
+  },
+  "timings": {
+    "dependency_lookup_s": 0.3,
+    "stage1_s": 5.7,
+    "stage2_and_verify_s": 83.6,
+    "total_s": 89.5
+  },
+  "disclaimer": "Explanations are based on license text only. This is not legal advice."
+}
