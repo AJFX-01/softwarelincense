@@ -161,203 +161,133 @@ Charts are grouped in the **Figures** section at the end (A1–A4), referenced a
 ---
 
 ## 12. Data Overview — Where Everything Comes From
-| # | Source | What it is | What we took | Used for | Used live? |
-|---|---|---|---|---|---|
-| 1 | **Software Heritage license dataset** (Zenodo 6379164) | Archive of 6.5M license files from public code (GitHub, GitLab, Debian, PyPI, npm…) | 5 metadata tables + a 20,000-file text sample | Exploratory analysis, scope check | No |
-| 2 | **choosealicense.com** (GitHub repo) | 47 licenses, each with labels + full text | Labels (permissions / conditions / limitations) + text | Knowledge base · **ground truth** | Yes |
-| 3 | **SPDX License List** v3.29.0 | Official list of 740 license IDs | ID + "OSI-approved" flag | Scope filter · ID normalisation | Yes |
-| 4 | **PyPI / npm registries** | Package metadata | Each dependency's declared license | Manifest input (FR3) | Yes |
-| 5 | **Generated test data** | Built by us from sources 2–3 | Requirement profiles, descriptions, clause–claim pairs | Evaluation (RQ1, RQ2) | No |
-- Planned, not used yet: **OSADL compatibility matrix** (Phase 2)
-- Principle: every label comes from public, curated data — no expert opinion needed
+*(insert `docs/figures/14_data_sources.png`)*
+- Four public sources → what we took → what each one feeds
+- Knowledge base and dependency check are used live; analysis and ground truth are built offline
 
 ---
 
-## 12a. Source 1 — Software Heritage License Dataset
-| File | Rows | Key | Fields | Used? |
-|---|---|---|---|---|
-| `license-blobs.csv` | 6,482,294 | sha1 ↔ swhid | swhid, sha1, file name | ✅ bridge between keys |
-| `blobs-fileinfo.csv` | 6,008,466 | sha1 | mime type, encoding, lines, words, size | ✅ |
-| `blobs-scancode.csv` | 7,568,531 detections (4.29M files, 1,705 license IDs) | sha1 | detected SPDX license, confidence 0–100 | ✅ |
-| `blobs-earliest.csv` | 5,752,308 | swhid | first commit, date, # commits containing it | ✅ |
-| `blobs-origins.csv` | 5,700,334 | swhid | one example repository URL | ✅ |
-| `blobs-sample20k.tar.zst` | 20,000 files (30 MB) | sha1 (file name) | the actual license texts | ✅ |
-| `blobs.tar.zst` | 6.5M files (**14 GB**) | sha1 | all license texts | ❌ not downloaded |
-- Licenses detected by **ScanCode** (industry license scanner); each file deduplicated by its SHA1 hash
-- Why the 20k sample: random, representative, small enough to process on a laptop
+## 12a. Software Heritage — Tables Used and How They Were Merged
+*(insert `docs/figures/15_software_heritage_merge.png`)*
+- Start from the 20,000-file text sample; join five metadata tables onto it
+- Two keys: SHA1 (file content) and Software Heritage ID — `license-blobs` links them
+- Result: one 20,000 × 16 table; the 14 GB full-text archive was not needed
+- **Why we need it:** exploratory analysis of real-world licenses (slides 14, A1) · evidence that our 34-license scope covers 93.8% of real use · a pool of modified ("variant") licenses for Phase 2 robustness tests
+- **Not used for:** the pipeline at run time or the ground truth
 
 ---
 
-## 12b. Merging the Software Heritage Tables
-1. Start from the **20,000 sample files** (file name = SHA1 hash)
-2. `license-blobs` → add **Software Heritage ID** + all **file names** (`LICENSE`, `COPYING`, …)
-3. `fileinfo` → add **type, encoding, line / word count, size** (joined on SHA1)
-4. `scancode` → add **detected licenses + confidence** (joined on SHA1; a file can have several)
-5. `earliest` → add **first-seen date + popularity** (joined on Software Heritage ID)
-6. `origins` → add **example repository URL** (joined on Software Heritage ID)
-- Big tables are **streamed** and filtered to the sample → low memory
-- Result: **20,000 rows × 16 columns** (`sample20k_index.csv`)
-- Match rate: 100% for IDs and file info · 96% have a date · 95% have an origin URL
+## 12b. Classifying Each Sample File
+*(insert `docs/figures/16_sample_categories.png`)*
+- Four yes/no questions sort every file into one of five groups
+- 93.8% of files with a license use one of our 34 → our scope matches real-world use
+- Used for analysis only, not as ground truth
 
 ---
 
-## 12c. Classifying Each Sample File
-| Category | Rule | Files |
-|---|---|---|
-| **Clean** | exactly one license, in our scope, confidence = 100 | 10,436 (52%) |
-| **Variant** | one in-scope license, confidence < 100 (likely modified) | 1,299 (6%) |
-| **Multi** | several different licenses detected in one file | 1,687 (8%) |
-| **Out of scope** | only licenses outside our 34 | 890 (4%) |
-| **Undetected** | no license found (mostly `AUTHORS` files, HTML pages) | 5,688 (28%) |
-- **93.8%** of files with a detected license use one of our 34 → scope covers real-world use
-- License IDs normalised before comparing: `GPL-3.0-only`, `GPL-3.0-or-later` → `GPL-3.0`
-- Use: exploratory analysis only — not used as ground truth
-
----
-
-## 12d. Source 2 — choosealicense.com (the Knowledge Base)
-- 47 files, each = **YAML header + full license text**
-- **Kept:** `spdx-id` · `title` · `nickname` · `description` · `hidden` · **`permissions`** · **`conditions`** · **`limitations`** · full text
-- **Stripped:** `how` (install instructions) · `note` · `using` (example projects) · `redirect_from` · `featured` (website-only)
-- **Label vocabulary** (the ground-truth "facts" about each license)
+## 12c. choosealicense.com & SPDX — the Knowledge Base
+- **choosealicense.com:** 47 licenses, each = labels + full text
   - **Permissions (5):** commercial use · modifications · distribution · private use · patent use
   - **Conditions (8):** include copyright · include copyright (source) · document changes · disclose source · same license · same license (file) · same license (library) · network use = distribution
   - **Limitations (4):** no liability · no warranty · no trademark rights · no patent rights
-- Output: `licenses.json` (one record per license)
+- **SPDX:** 740 official license IDs → used to keep only OSI-approved licenses and to recognise valid IDs
+- Which fields were kept or dropped → slide 12j
 
 ---
 
-## 12e. Source 3 — SPDX License List
-- 740 licenses; fields: `licenseId` · `name` · `isOsiApproved` · `isDeprecatedLicenseId` · `reference` · `detailsUrl` · `seeAlso` · `referenceNumber`
-- **Kept:** `licenseId`, `isOsiApproved` · **Stripped:** everything else
-- Uses:
-  - **OSI flag** → keep only Open Source Initiative-approved licenses
-  - **ID list** (`spdx_ids.json`) → recognise valid license IDs in dependency metadata
-- Older choosealicense IDs (`GPL-3.0`) matched to SPDX (`GPL-3.0-only`) automatically
+## 12d. Scoping the Knowledge Base: 47 → 34
+*(insert `docs/figures/17_scope_funnel.png`)*
+- Remove licenses not meant for software (8), then those not OSI-approved (5)
+- Each remaining license is classed permissive, weak or strong copyleft from its labels
+- CeCILL-2.1 is French-only → recommended, but its claims can't be verified
 
 ---
 
-## 12f. Scoping the Knowledge Base: 47 → 34 Licenses
-| Step | Removed | Count |
-|---|---|---|
-| Start | — | **47** |
-| Not for software | CC-BY-4.0, CC-BY-SA-4.0 (media) · GFDL-1.3 (docs) · ODbL-1.0 (data) · OFL-1.1 (fonts) · CERN-OHL-P/S/W-2.0 (hardware) | −8 → 39 |
-| Not OSI-approved | BSD-3-Clause-Clear · BSD-4-Clause · CC0-1.0 · Vim · WTFPL | −5 → **34** |
-- **Language check:** share of common French words per paragraph → **CeCILL-2.1 is French-only** → stays recommendable, but its claims can't be verified (verifier is English-only)
-- **Copyleft class** computed from labels: *same license* → strong (9) · *same license (file / library)* → weak (4) · neither → permissive (21)
+## 12e. PyPI / npm — Dependency Licenses
+- **Reading the manifest** (never executed)
+  - `requirements.txt` → package names · `pyproject.toml` → `[project] dependencies` · `package.json` → `dependencies` (dev-only packages ignored)
+- **Looking up each package** on PyPI or npm, in parallel
+  - PyPI: license expression → license field → classifiers · npm: license field
+- **Turning it into an SPDX ID:** exact match · 41 common spellings (`GPL v3` → `GPL-3.0-only`) · combined licenses kept (`MIT OR Apache-2.0`)
+- **Never guessed:** pasted license text, vague labels, missing packages → **unknown**
 
 ---
 
-## 12g. Source 4 — PyPI / npm (Dependency Licenses)
-- **Manifest parsing** (never executed, only read)
-  - `requirements.txt`: package names; skips comments, `-r` / `-e` options, URLs
-  - `pyproject.toml`: `[project] dependencies`
-  - `package.json`: `dependencies` only — `devDependencies` are not shipped, so ignored
-- **Lookup** (in parallel): PyPI JSON API · npm registry
-  - PyPI fields read, in order: `license_expression` → `license` → `classifiers`
-  - npm field: `license` (text or old `{type: …}` format)
-- **Normalisation to SPDX:** exact ID match · 41 common spellings (`GPL v3` → `GPL-3.0-only`, `Apache Software License` → `Apache-2.0`) · expressions kept (`MIT OR Apache-2.0`)
-- **Not guessed:** full license text pasted in the field, generic classifiers ("OSI Approved"), missing package → **unknown**
+## 12f. From License Text to Clauses
+*(insert `docs/figures/18_clauses.png`)*
+- **Why split into clauses?**
+  - The verifier reads at most **512 tokens (~2,000 characters)**; GPL-3.0 alone is **35,000 characters**
+  - A claim must be checked against **the one passage that supports it**, not a whole license
+  - Groq's free tier allows **8,000 tokens per minute**, so Stage 2 can only receive the relevant clauses
+  - Users need a **specific passage** to read as evidence (FR9)
+- Five steps → 812 clauses from 33 English licenses; attaching lead-ins fixes clauses that stopped at a colon
+- **What the clauses feed:** Stage 2 (numbered clauses the LLM must quote) → verifier (clause = premise) → evidence drawer in the UI → verifier test set (RQ2)
 
 ---
 
-## 12h. Splitting Licenses into Clauses
-1. Split each license text at blank lines → paragraphs; tidy spacing
-2. **Drop non-English paragraphs** (French detector)
-3. **Merge short headings** (< 80 characters) into the paragraph below
-4. **Lead-in sentences:** a paragraph ending in `:` is attached to **each list item** under it
-   - e.g. "Licensor grants You a license … to do the following:" + "b) to translate, adapt, alter, transform, **modify** …"
-   - Fixes clauses that stopped at a colon and lost their meaning
-5. If no list follows, the lead-in joins the next paragraph
-- Result: **812 clauses** from 33 English licenses · median **329 characters** · longest 1,985
-- Every clause fits the verifier's 512-token input → nothing truncated
+## 12g. RQ1 Test Set — How Each File Is Built
+**Chain:** `licenses.json` → `profiles.jsonl` → `descriptions.jsonl`
+
+**1 · `scripts/build_license_kb.py` → `licenses.json`**
+- Reads: choosealicense.com (47 licenses) + SPDX list
+- Writes: one record per license — its labels (permissions, conditions, limitations), full text, and an *in scope* flag (34 are in scope)
+- Role here: the **facts** every correct answer is computed from
+
+**2 · `scripts/build_scenarios.py` → `profiles.jsonl`**
+- Defines **6 requirements** from the labels (e.g. "share changes", "patent grant") — only labels that differ between licenses
+- Lists every combination of them: **192**; removes the empty one → **191**
+- For each, checks all 34 licenses' labels: **114** have no matching license (removed), **77** are kept
+- Writes 77 **profiles**: the requirements + the list of licenses that satisfy them (the **answer key**)
+
+**3 · `scripts/generate_descriptions.py` → `descriptions.jsonl`**
+- Qwen3.8-27B turns each profile into ~3 plain-language project descriptions → **235**
+- gpt-oss-20b reads each one *without* the profile and lists the requirements it sees
+- Kept only if they match the profile exactly → **190 valid** (70 profiles), 45 rejected
+- Each line: the description text, persona, recovered requirements, valid yes/no, and the answer key
 
 ---
 
-## 12i. Finding the Clause for Each Label
-- Goal: for "GPL-3.0 has *disclose source*", find **the** clause that says it
-- Each of 16 labels has two text patterns
-  - **Anchor** (precise): e.g. *"Limitation of Liability"*, *"Grant of Patent License"*, *"prominent notices stating"*
-  - **Keywords** (broad): e.g. *liab*, *patent*, *source code*
-- Rank clauses by: anchor matches → keyword matches → earliest position
-- Checked by hand on MIT, BSD, Apache-2.0, GPL-3.0, MPL-2.0 (e.g. liability → GPL §16, not §17)
-- **23** label–license combinations with no matching clause (mostly *commercial use*: BSD never says "sell")
-- Used twice: building the verifier test set · choosing evidence for Stage 2
+## 12h. RQ1 Evaluation — How Stage 1 Is Scored
+**Chain:** `descriptions.jsonl` + `profiles.jsonl` → `stage1_results.jsonl` → `stage1_summary.json`
+
+**4 · `scripts/eval_stage1.py` → `stage1_results.jsonl`**
+- Takes each **valid** description and sends **only its text** to Stage 1 (gpt-oss-120b) — the model never sees the profile
+- Compares the 3 recommended licenses with that description's answer key
+- Writes one line per description: the 3 picks (each marked correct or not, and which requirement it breaks), Hit@1, Hit@3, Precision@3
+- **104** descriptions run, covering all 70 profiles (free-tier limit: 200k tokens/day; one per profile ran first)
+
+**5 · Same script → `stage1_summary.json`**
+- Averages the scores overall and by difficulty (how many licenses were correct: 1–3 · 4–10 · more than 10)
+- Violation rate per requirement: how often a pick breaks e.g. "trademark protected"
+
+**How the scores are defined**
+- **Hit@1** — the first pick is a correct license
+- **Hit@3** — at least one of the three is correct
+- **Precision@3** — share of the three that are correct
+- Results → slide 19 · charts → Fig. A4
+---
+
+## 12i. Ground Truth for RQ2 — Clause–Claim Pairs & Human Check
+*(insert `docs/figures/20_ground_truth_rq2.png`)*
+- Every clause gives three pairs with known answers: true · negated · off-topic
+- 150 checked by hand → automatic answers 97.9% correct; annotators agree (κ = 0.88)
 
 ---
 
-## 12j. Ground Truth 1 — Requirement Profiles (for RQ1)
-| Requirement | Possible values | Rule over the labels |
-|---|---|---|
-| Share changes | none · file/library · whole project | copyleft class |
-| Network use | must trigger sharing · must not | has / lacks *network use = distribution* |
-| Patent grant | required | has *patent use* permission |
-| Trademark | protected | has *no trademark rights* |
-| Attribution | not required | no *include copyright* condition |
-| Document changes | not required | no *document changes* condition |
-- All combinations: 192 → **77 profiles** with at least one constraint and at least one correct license
-- **Correct answer** = every in-scope license satisfying **all** constraints (computed, not judged)
-- Correct licenses per profile: 1 to 29 (median 3) · 1–5 constraints per profile
-
----
-
-## 12k. Ground Truth 1 — Natural-Language Descriptions
-1. **Write:** Qwen3.8-27B turns each profile into ~3 first-person descriptions, each a different persona (student, start-up, researcher…), never naming a license
-2. **Check (round trip):** gpt-oss-20b reads each description *without seeing the profile* and recovers the requirements
-3. **Keep** only exact matches
-- **235 written → 190 kept (81%)** covering 70 of 77 profiles
-- Hardest to express: weak copyleft and "network use must not trigger sharing" → 7 profiles with no valid description
-- Writer and checker are different from the pipeline model (gpt-oss-120b) → less bias
-- Evaluated so far: **104 descriptions, all 70 profiles** (free-tier limit: 200k tokens/day)
-
----
-
-## 12l. Ground Truth 2 — Clause–Claim Pairs (for RQ2)
-- For each license (33) × label it has, take its clause (12i) and build 3 pairs:
-| Pair | Claim | Correct answer |
-|---|---|---|
-| True | "The software is provided without any warranty." | **entailment** |
-| Negated | "The software comes with a warranty." | **contradiction** |
-| Off-topic | a true claim about a topic the clause never mentions | **neutral** |
-- 16 claim templates (true + negated); *private use* left out (never stated in one clause)
-- **729 pairs** = 243 entailment + 243 contradiction + 243 neutral
-- Labels are automatic → checked by humans (next slide)
-
----
-
-## 12m. Checking the Automatic Labels by Hand
-1. **Sample:** 150 pairs, 50 per label, random with a fixed seed
-2. **Label:** two annotators, 75 each; rule = "judge from this clause only, not from what you know about the license"
-3. **Settle:** 22 disagreements reviewed by the team → 3 left ambiguous and excluded → **146 labelled pairs**
-4. **Clause fix:** 127 labels carried over (96 unchanged, 31 only gained a lead-in) · 23 changed pairs relabelled
-5. **Agreement:** 40 pairs labelled by both annotators → **κ = 0.88** (39 pairs; first label visible)
-- Automatic labels match final human labels on **97.9%** → the 729-pair set is trustworthy
-
----
-
-## 12n. What We Left Out — and Why
-| Left out | Why |
-|---|---|
-| 6.5M full license texts (14 GB) | 20k random sample is enough for analysis |
-| Undetected & out-of-scope sample files | Not licenses we can recommend |
-| 13 of 47 licenses | Not software, or not OSI-approved |
-| choosealicense `how` / `note` / `using` fields; most SPDX fields | Website content, not license facts |
-| *Private use* label | Never stated in a single clause → can't be verified |
-| CeCILL-2.1 in the verifier test set | French text, English-only verifier |
-| `devDependencies` | Not shipped with the product |
-| 45 descriptions failing the round trip | Text didn't express exactly the profile |
-| 86 valid descriptions not yet evaluated | Daily token limit on the free tier |
-| OSADL compatibility matrix | Phase 2 (manifest evaluation) |
+## 12j. What We Kept and What We Left Out
+*(insert `docs/figures/21_kept_vs_left_out.png`)*
+- Every exclusion has a reason: not needed, not verifiable, or out of scope
+- Phase 2 adds the OSADL compatibility matrix
 
 ---
 
 ## 13. Data Pipeline at a Glance
-1. **Collect:** Software Heritage (6 files) · choosealicense (47) · SPDX (740) · registries (live)
-2. **Merge:** 20k sample ⨝ 5 metadata tables → 20,000 × 16 index → analysis
-3. **Scope:** 47 → 34 licenses (software + OSI) · CeCILL flagged French
+1. **Collect:** Software Heritage · choosealicense · SPDX · registries (live)
+2. **Merge:** 20k sample + 5 tables → one 20,000-row table → analysis
+3. **Scope:** 47 → 34 licenses · CeCILL flagged French
 4. **Split:** 33 English licenses → 812 clauses
-5. **Ground truth for RQ1:** labels → 77 profiles → 235 descriptions → 190 validated → 104 evaluated
-6. **Ground truth for RQ2:** clauses + labels → 729 pairs → 150 hand-checked → 146 labelled (κ 0.88)
+5. **RQ1 ground truth:** 77 profiles → 190 validated descriptions → 104 evaluated
+6. **RQ2 ground truth:** 729 pairs → 150 hand-checked → 146 labelled
 7. **At run time:** knowledge base + clauses + registry lookups feed the pipeline
 
 ---
