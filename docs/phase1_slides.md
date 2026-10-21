@@ -262,6 +262,12 @@ Charts are grouped in the **Figures** section at the end (A1–A4), referenced a
 ## 12i. Ground Truth for RQ2 — Clause–Claim Pairs & Human Check
 *(insert `docs/figures/20_ground_truth_rq2.png`)*
 - Every clause gives three pairs with known answers: true · negated · off-topic
+- **Where the 16 templates come from:** a template is a pair of sentences we wrote for one license label — a true version and its opposite (e.g. "provided without any warranty" / "comes with a warranty")
+  - choosealicense has 17 labels; we wrote one for each except *private use*, which no license states in a single clause → 16
+- **Where 243 each comes from:**
+  - 33 English licenses × the labels each one has = 266 license–label combinations
+  - minus 23 where no matching clause was found (mostly "commercial use": BSD never says "sell") = **243 clauses**
+  - each clause makes exactly one true, one negated and one off-topic pair → 243 × 3 = **729 pairs**
 - 150 checked by hand → automatic answers 97.9% correct; annotators agree (κ = 0.88)
 
 ---
