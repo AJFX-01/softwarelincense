@@ -231,7 +231,11 @@ Charts are grouped in the **Figures** section at the end (A1–A4), referenced a
 **The idea:** before we can test whether the system picks the right license, we need questions where we already know the right answer.
 
 1. **Choose what developers might ask for.** Each license comes with labels saying what it allows and requires. We picked the 6 that actually differ between licenses — e.g. "changes must be shared", "contributors grant patent rights", "users don't need to credit us".
-2. **Try every combination.** For each of the 6, a developer either wants a specific option or doesn't care. That gives 192 possible requests.
+2. **Try every combination.** For each requirement, a developer picks one setting or doesn't care:
+   - "Share changes" has 4 settings: nothing · just the changed files · the whole project · don't care
+   - "Network use" has 3: online use must trigger sharing · must not · don't care
+   - The other four have 2 each: wanted · don't care
+   - 4 × 3 × 2 × 2 × 2 × 2 = **192** possible requests (not 2⁶ = 64, because two requirements have more than yes/no)
 3. **Drop the empty one.** "I don't care about anything" isn't a real request → 191 left.
 4. **Work out which licenses fit.** For each request, we check all 34 licenses against their labels. If no license can satisfy everything (114 requests), the request is dropped. If at least one can (77 requests), it's kept.
 5. **The result: 77 profiles.** Each profile is a request plus the list of licenses that fit it. That list is the **answer key** — worked out from the labels, not guessed by a person.
