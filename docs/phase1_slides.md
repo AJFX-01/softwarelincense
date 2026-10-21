@@ -225,46 +225,34 @@ Charts are grouped in the **Figures** section at the end (A1–A4), referenced a
 
 ---
 
-## 12g. RQ1 Test Set — How Each File Is Built
-**Chain:** `licenses.json` → `profiles.jsonl` → `descriptions.jsonl`
+## 12g. RQ1 Part A — Building Requirement Profiles and Their Correct Answers
+*(insert `docs/figures/19a_rq1_profiles.png`)*
 
-**1 · `scripts/build_license_kb.py` → `licenses.json`**
-- Reads: choosealicense.com (47 licenses) + SPDX list
-- Writes: one record per license — its labels (permissions, conditions, limitations), full text, and an *in scope* flag (34 are in scope)
-- Role here: the **facts** every correct answer is computed from
+**The idea:** before we can test whether the system picks the right license, we need questions where we already know the right answer.
 
-**2 · `scripts/build_scenarios.py` → `profiles.jsonl`**
-- Defines **6 requirements** from the labels (e.g. "share changes", "patent grant") — only labels that differ between licenses
-- Lists every combination of them: **192**; removes the empty one → **191**
-- For each, checks all 34 licenses' labels: **114** have no matching license (removed), **77** are kept
-- Writes 77 **profiles**: the requirements + the list of licenses that satisfy them (the **answer key**)
-
-**3 · `scripts/generate_descriptions.py` → `descriptions.jsonl`**
-- Qwen3.8-27B turns each profile into ~3 plain-language project descriptions → **235**
-- gpt-oss-20b reads each one *without* the profile and lists the requirements it sees
-- Kept only if they match the profile exactly → **190 valid** (70 profiles), 45 rejected
-- Each line: the description text, persona, recovered requirements, valid yes/no, and the answer key
+1. **Choose what developers might ask for.** Each license comes with labels saying what it allows and requires. We picked the 6 that actually differ between licenses — e.g. "changes must be shared", "contributors grant patent rights", "users don't need to credit us".
+2. **Try every combination.** For each of the 6, a developer either wants a specific option or doesn't care. That gives 192 possible requests.
+3. **Drop the empty one.** "I don't care about anything" isn't a real request → 191 left.
+4. **Work out which licenses fit.** For each request, we check all 34 licenses against their labels. If no license can satisfy everything (114 requests), the request is dropped. If at least one can (77 requests), it's kept.
+5. **The result: 77 profiles.** Each profile is a request plus the list of licenses that fit it. That list is the **answer key** — worked out from the labels, not guessed by a person.
 
 ---
 
-## 12h. RQ1 Evaluation — How Stage 1 Is Scored
-**Chain:** `descriptions.jsonl` + `profiles.jsonl` → `stage1_results.jsonl` → `stage1_summary.json`
+## 12h. RQ1 Part B — Realistic Descriptions, Then Testing Stage 1
+*(insert `docs/figures/19b_rq1_descriptions_eval.png`)*
 
-**4 · `scripts/eval_stage1.py` → `stage1_results.jsonl`**
-- Takes each **valid** description and sends **only its text** to Stage 1 (gpt-oss-120b) — the model never sees the profile
-- Compares the 3 recommended licenses with that description's answer key
-- Writes one line per description: the 3 picks (each marked correct or not, and which requirement it breaks), Hit@1, Hit@3, Precision@3
-- **104** descriptions run, covering all 70 profiles (free-tier limit: 200k tokens/day; one per profile ran first)
+**The idea:** real developers don't write lists of requirements — they describe their project in their own words. So we turn each profile into everyday descriptions and see if the system can still find the right licenses.
 
-**5 · Same script → `stage1_summary.json`**
-- Averages the scores overall and by difficulty (how many licenses were correct: 1–3 · 4–10 · more than 10)
-- Violation rate per requirement: how often a pick breaks e.g. "trademark protected"
+6. **Write.** One AI model (Qwen) writes about 3 short descriptions per profile, each in a different voice (a student, a start-up founder, a researcher…), without mentioning any license. → 235 descriptions
+7. **Check.** A second, different AI model reads each description *without* seeing the profile and lists the requirements it can spot.
+8. **Keep only clear descriptions.** If the checker spots exactly the profile's requirements, the description is clear enough to keep. → 190 kept, 45 dropped
+9. **Test Stage 1.** Our system reads only the description and recommends 3 licenses. We compare its picks with the answer key from Part A. → 104 tested, covering all 70 profiles
 
-**How the scores are defined**
-- **Hit@1** — the first pick is a correct license
-- **Hit@3** — at least one of the three is correct
-- **Precision@3** — share of the three that are correct
-- Results → slide 19 · charts → Fig. A4
+**How we score it**
+- **Hit@1:** the first pick is a correct license · **Hit@3:** at least one of the three is correct · **Precision@3:** how many of the three are correct
+- **Why 104 and not 190?** The free AI service limits how much text we can send per day, so we tested one description per profile first — every profile is covered.
+- Results → slide 19
+
 ---
 
 ## 12i. Ground Truth for RQ2 — Clause–Claim Pairs & Human Check
