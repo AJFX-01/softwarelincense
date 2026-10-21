@@ -136,14 +136,36 @@ Charts are grouped in the **Figures** section at the end (A1–A4), referenced a
 
 ---
 
-## 10. UI Mock-up
-- **Input:** tabs *Describe* / *Upload manifest*
-- **Dependencies:** table with license + status badge
-- **Results:** 3 cards — license, reason, claims with badges
-- **Evidence:** click a claim → highlighted clause
-- **Footer:** disclaimer · progress while job runs
-*(screenshot / sketch here)*
+## 10a. UI — Step 1: Enter
+*(insert `docs/figures/22a_ui_1_enter.png`)*
+- Describe the project in plain words — no license terms needed
+- Or switch to **Upload manifest** to add a dependency list
+- Press **Recommend**
 
+---
+
+## 10b. UI — Step 2: Send & Check
+*(insert `docs/figures/22b_ui_2_send_check.png`)*
+- The request goes to the backend, which runs the pipeline in the background
+- The **Pipeline** panel ticks off each step: lookup → recommend → explain → verify
+- Real runs take 1–5 minutes on the free tier
+
+---
+
+## 10c. UI — Step 3: Results
+*(insert `docs/figures/22c_ui_3_results.png`)*
+- **What we understood:** the requirements the system picked up, plus any questions
+- **Three license cards**, each with a reason and claims marked **verified / unverified / contradicted**
+- Download the full result as JSON
+
+---
+
+## 10d. UI — Step 4: Evidence
+*(insert `docs/figures/22d_ui_4_evidence.png`)*
+- Click any claim to open the cited license clause, with the quoted words highlighted
+- See how confident the verifier is (entailment / neutral / contradiction)
+- Every result carries a "not legal advice" disclaimer
+- Demo UI (React); backend not yet connected — results are saved outputs of the real pipeline
 ---
 
 ## 11. What Changed Since the Proposal (and Why)
@@ -261,6 +283,8 @@ Charts are grouped in the **Figures** section at the end (A1–A4), referenced a
 
 ## 12i. Ground Truth for RQ2 — Clause–Claim Pairs & Human Check
 *(insert `docs/figures/20_ground_truth_rq2.png`)*
+- **Built from the 812 clauses (slide 12f):** for each license and label, the clause matching picks one of that license's clauses → 243 slots using **173 distinct clauses** (one clause can support several labels, e.g. MIT's grant paragraph covers commercial use, modifications and distribution)
+  - The other 639 clauses (definitions, preambles, termination, governing law…) express no label, so there is no known true / false claim to test them with
 - Every clause gives three pairs with known answers: true · negated · off-topic
 - **Where the 16 templates come from:** a template is a pair of sentences we wrote for one license label — a true version and its opposite (e.g. "provided without any warranty" / "comes with a warranty")
   - choosealicense has 17 labels; we wrote one for each except *private use*, which no license states in a single clause → 16

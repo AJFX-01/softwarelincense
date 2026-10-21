@@ -8,10 +8,12 @@ import { Licenses } from "./pages/Licenses";
 import { Pipeline } from "./pages/Pipeline";
 
 // Demo shortcuts: ?page=licenses · ?example=saas · ?example=clinic
+// &stage=input|running|evidence freezes the page at that step (for screenshots)
 const params = new URLSearchParams(window.location.search);
 const initialPage = (["new", "history", "licenses", "pipeline"].includes(params.get("page") ?? "")
   ? params.get("page") : "new") as Page;
 const initialPreset = EXAMPLES.find((e) => e.id === params.get("example")) ?? null;
+const stage = params.get("stage") ?? undefined;
 
 export default function App() {
   const [page, setPage] = useState<Page>(initialPage);
@@ -23,7 +25,7 @@ export default function App() {
       <div className="main">
         <Topbar page={page} />
         <main className="content">
-          {page === "new" && <NewRecommendation key={preset?.id ?? "blank"} preset={preset} />}
+          {page === "new" && <NewRecommendation key={preset?.id ?? "blank"} preset={preset} stage={preset === initialPreset ? stage : undefined} />}
           {page === "history" && <History onOpen={(ex) => { setPreset(ex); setPage("new"); }} />}
           {page === "licenses" && <Licenses />}
           {page === "pipeline" && <Pipeline />}

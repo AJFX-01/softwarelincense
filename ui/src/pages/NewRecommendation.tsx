@@ -9,14 +9,15 @@ import { StatusBadge } from "../components/Evidence";
 type Tab = "describe" | "manifest";
 type Manifest = { name: string; content: string };
 
-export function NewRecommendation({ preset }: { preset: Example | null }) {
+export function NewRecommendation({ preset, stage }: { preset: Example | null; stage?: string }) {
   // The parent remounts this page (key) when the preset changes, so state starts from it.
   const [tab, setTab] = useState<Tab>(preset?.manifest ? "manifest" : "describe");
   const [description, setDescription] = useState(preset?.description ?? "");
   const [manifest, setManifest] = useState<Manifest | null>(preset?.manifest ?? null);
   const [error, setError] = useState<string | null>(null);
-  const [step, setStep] = useState(preset ? PIPELINE_STEPS.length : -1); // -1 idle, 0..n running, n done
-  const [result, setResult] = useState<Result | null>(preset?.result ?? null);
+  const frozen = stage === "input" ? -1 : stage === "running" ? 4 : PIPELINE_STEPS.length;
+  const [step, setStep] = useState(preset ? frozen : -1); // -1 idle, 0..n running, n done
+  const [result, setResult] = useState<Result | null>(preset && frozen === PIPELINE_STEPS.length ? preset.result : null);
   const [example, setExample] = useState<Example | null>(preset);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -126,7 +127,7 @@ export function NewRecommendation({ preset }: { preset: Example | null }) {
           </div>
         </section>
 
-        {result && <ResultView result={result} isSample />}
+        {result && <ResultView result={result} isSample openEvidence={stage === "evidence"} />}
       </div>
 
       <aside className="stack">

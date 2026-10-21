@@ -9,7 +9,7 @@ pnpm install
 pnpm dev             # http://localhost:5173
 ```
 
-Demo shortcuts: `/?example=saas`, `/?example=clinic` (opens a result), `/?page=licenses`, `/?page=pipeline`.
+Demo shortcuts: `/?example=saas`, `/?example=clinic` (opens a result), `/?page=licenses`, `/?page=pipeline`. Add `&stage=input`, `running` or `evidence` to freeze a screen for screenshots.
 
 Screens: New recommendation (describe / upload manifest, simulated pipeline progress, results with
 verified / unverified / contradicted claims and an evidence drawer) · History · License catalogue · Pipeline & evaluation.

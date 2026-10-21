@@ -12,8 +12,10 @@ function download(result: Result) {
   URL.revokeObjectURL(a.href);
 }
 
-export function ResultView({ result, isSample }: { result: Result; isSample: boolean }) {
-  const [evidence, setEvidence] = useState<{ claim: Claim; license: string } | null>(null);
+export function ResultView({ result, isSample, openEvidence = false }: { result: Result; isSample: boolean; openEvidence?: boolean }) {
+  const firstVerified = result.recommendations.flatMap((r) => r.claims.map((claim) => ({ claim, license: r.spdx_id })))
+    .find((e) => e.claim.status === "verified") ?? null;
+  const [evidence, setEvidence] = useState<{ claim: Claim; license: string } | null>(openEvidence ? firstVerified : null);
   const claims = result.recommendations.flatMap((r) => r.claims);
   const verified = claims.filter((c) => c.status === "verified").length;
   const conflictDeps = new Set(result.conflicts.map((c) => c.dependency));
