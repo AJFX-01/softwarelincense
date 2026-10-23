@@ -53,10 +53,9 @@ Charts are grouped in the **Figures** section at the end (A1–A4), referenced a
 ---
 
 ## 3b. Research Questions
-- **RQ1** How well can an open-weight LLM recommend licenses that satisfy a developer's stated requirements?
-- **RQ2** How reliably can an NLI model verify LLM claims about license text?
-- **RQ3** How faithful are the pipeline's explanations, and does verification change what users see?
-
+- **RQ1 — Requirement-to-license mapping.** To what extent can an open-weight large language model, conditioned on a curated license catalogue, map natural-language project requirements to open-source licenses that satisfy them, and how does recommendation accuracy vary with requirement specificity (the size of the admissible license set)?
+- **RQ2 — Claim verification.** How reliably can off-the-shelf natural language inference (NLI) models verify LLM-generated claims against the license clauses they cite, as measured on human-validated clause–claim pairs?
+- **RQ3 — Explanation faithfulness.** To what extent are LLM-generated license explanations grounded in the cited license text, in terms of quote fidelity and textual entailment, and how does NLI-based verification change the claims presented to developers compared with an unverified baseline?
 ---
 
 ## 4. Requirements Elicitation
@@ -134,6 +133,16 @@ Charts are grouped in the **Figures** section at the end (A1–A4), referenced a
 - 2 LLM calls (Groq) + 1 local NLI model
 - Offline: data prep + evaluation harness
 
+
+---
+
+## 9b. Inputs and Outputs
+*(insert `docs/figures/23_io_examples.png`)*
+- **Input 1 — project description:** plain text, up to 4,000 characters, no license terms needed
+- **Input 2 — dependency manifest:** `requirements.txt`, `pyproject.toml` or `package.json`; read, never run; dev-only packages ignored
+- Either input alone, or both together
+- **Output:** the same result two ways — readable cards / command-line text, or JSON (API response, "Download JSON")
+- Each result: understood requirements · dependency warnings · 3 licenses with reasons · claims with quote, clause ID, status and NLI scores · disclaimer
 ---
 
 ## 10a. UI — Step 1: Enter
@@ -208,6 +217,10 @@ Charts are grouped in the **Figures** section at the end (A1–A4), referenced a
 ---
 
 ## 12c. choosealicense.com & SPDX — the Knowledge Base
+*(insert `docs/figures/24_choosealicense_raw_vs_processed.png`)*
+- **Raw → processed:** each choosealicense file (YAML header + license text) becomes one record in `licenses.json`
+- **Kept:** ID, title, description, the three label lists, full text · **Dropped:** how-to, example projects, website flags · **Added by us:** intended use, OSI flag, in-scope flag, language
+- **Why each field matters:** labels = ground truth; text = clauses and evidence; scope flags = 47 → 34; language = which licenses can be verified
 - **choosealicense.com:** 47 licenses, each = labels + full text
   - **Permissions (5):** commercial use · modifications · distribution · private use · patent use
   - **Conditions (8):** include copyright · include copyright (source) · document changes · disclose source · same license · same license (file) · same license (library) · network use = distribution
@@ -236,6 +249,7 @@ Charts are grouped in the **Figures** section at the end (A1–A4), referenced a
 ---
 
 ## 12f. From License Text to Clauses
+*(insert `docs/figures/25_clause_split.png` — before / after example)*
 *(insert `docs/figures/18_clauses.png`)*
 - **Why split into clauses?**
   - The verifier reads at most **512 tokens (~2,000 characters)**; GPL-3.0 alone is **35,000 characters**
@@ -279,6 +293,32 @@ Charts are grouped in the **Figures** section at the end (A1–A4), referenced a
 - **Why 104 and not 190?** The free AI service limits how much text we can send per day, so we tested one description per profile first — every profile is covered.
 - Results → slide 19
 
+
+---
+
+## 12h-2. Sample Profile & Descriptions — Why and How
+*(insert `docs/figures/26_profile_descriptions.png`)*
+**Why generate profiles and descriptions?**
+- No public dataset pairs developer requests with **known correct licenses**; profiles give us the requests, and the license labels give us the answers
+- We control coverage: every combination of requirements that some license can satisfy is tested (77 profiles)
+- Answers are computed, so no legal expert is needed to grade them
+
+**Why test on written descriptions instead of giving the model the profile directly?**
+- The profiles and descriptions are the **test set** — the exam we grade the system on. They are never shown to the model as examples; the recommender works zero-shot (no examples, no training)
+- **Real users write sentences, not checklists.** Nobody types `{"network_use": "must_disclose"}`; they write "companies running it online should share their improvements". Understanding that is the hard part, so that is what we test
+- **With a checklist, an AI isn't needed.** Picking licenses that match exact requirements is a simple lookup — the same lookup that built the answer key. Testing the AI on it would be grading it against its own answer sheet
+- **The checklist would give the answer away.** Profile wording matches the license labels ("patent grant", "same license"), so the model could match words without understanding anything
+
+**Why personas?**
+- Real developers differ in vocabulary, project type and how directly they state needs
+- Asking for a different persona and project in each description tests whether the system understands the **meaning**, not one fixed wording
+- Most common personas: startup founder (29) · university researcher (25) · freelance web developer (12) · hobbyist (8) · indie game developer (7) — 122 distinct labels in total
+
+**Limitations**
+- Descriptions are **written by an AI model**, so they are cleaner and more explicit than many real requests
+- The round-trip check keeps only clearly stated requirements; subtle ones (weak copyleft, "network use must not trigger sharing") are under-represented — 7 profiles have no valid description
+- English only; persona labels are chosen by the writer model, not sampled from real users
+- The writer (Qwen) and checker (gpt-oss-20b) are different from the tested model (gpt-oss-120b) to reduce bias, but all are LLMs
 ---
 
 ## 12i. Ground Truth for RQ2 — Clause–Claim Pairs & Human Check
@@ -286,6 +326,7 @@ Charts are grouped in the **Figures** section at the end (A1–A4), referenced a
 - **Built from the 812 clauses (slide 12f):** for each license and label, the clause matching picks one of that license's clauses → 243 slots using **173 distinct clauses** (one clause can support several labels, e.g. MIT's grant paragraph covers commercial use, modifications and distribution)
   - The other 639 clauses (definitions, preambles, termination, governing law…) express no label, so there is no known true / false claim to test them with
 - Every clause gives three pairs with known answers: true · negated · off-topic
+- **Who writes the claims and the tags?** We do — from fixed sentence templates, not with AI. The tag (entailment / contradiction / neutral) comes from how the pair was built (e.g. we wrote the negated sentence as the opposite, so we know it contradicts). Humans then check a sample. **The NLI model only takes the test:** it sees clause + claim without the tag, predicts e / c / n, and we compare its answer with the tag.
 - **Where the 16 templates come from:** a template is a pair of sentences we wrote for one license label — a true version and its opposite (e.g. "provided without any warranty" / "comes with a warranty")
   - choosealicense has 17 labels; we wrote one for each except *private use*, which no license states in a single clause → 16
 - **Where 243 each comes from:**
@@ -347,14 +388,34 @@ Charts are grouped in the **Figures** section at the end (A1–A4), referenced a
 - Decisions: exactly 3 recommendations · clause-level evidence · retry once if > 50% claims fail
 - No fine-tuning in Phase 1
 
+
+---
+
+## 16b. The NLI Verifier — How It Labels and How We Evaluated It
+*(insert `docs/figures/27_nli_labeling.png`)*
+**The model — used, not trained by us**
+- DeBERTa-v3-large NLI (`MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli`): pre-trained by its authors on public NLI datasets (MNLI, FEVER-NLI, ANLI, LingNLI, WANLI)
+- We use it as-is, locally; no fine-tuning in Phase 1 · baseline: RoBERTa-large-MNLI, also as-is
+
+**How it labels a claim**
+- Quote check first: the quote must appear word for word in the cited clause
+- Premise = cited clause, hypothesis = claim → probabilities for entailment / neutral / contradiction → highest wins → Verified / Unverified / Contradicted
+
+**How we evaluated it**
+- Test set: 729 clause–claim pairs with automatic labels (slide 12i)
+- Human check: stratified sample of 150 pairs (50 per label), each annotator judging **from the clause alone**
+- Annotators: **Opeyemi Ajegbomogun** (project author) · **a software engineer with experience working with open-source licenses, now a software engineering researcher**
+- 75 pairs each; 22 disagreements with the automatic labels settled by the team; 3 left ambiguous and excluded → 146 pairs
+- Agreement: 40 pairs labelled by both → Cohen's κ = 0.88 (first label was visible)
+- Metrics: accuracy · precision / recall / F1 per label · **entailment precision** (how often "Verified" is right) → results on slide 18
 ---
 
 ## 17. Methodology & Evaluation by RQ
 | | Method | Ground truth | Metrics |
 |---|---|---|---|
-| **RQ1** Recommendation | gpt-oss-120b (Stage 1) on project descriptions written by Qwen, checked by gpt-oss-20b | 77 requirement profiles → correct licenses computed from choosealicense labels | Hit@1 · Hit@3 · Precision@3 · violation rate per requirement |
-| **RQ2** Verifier | DeBERTa-v3-large vs RoBERTa-large on clause–claim pairs | 729 auto-labelled pairs · 146 hand-labelled (κ = 0.88) | Accuracy · per-class P / R / F1 · **entailment precision** |
-| **RQ3** Faithfulness | Run full pipeline; compare with LLM-only baseline (`--no-verify`) | License text itself (cited clause) | % quotes found verbatim · % claims verified / unverified / contradicted |
+| **RQ1** Requirement-to-license mapping | gpt-oss-120b (Stage 1) on project descriptions written by Qwen, checked by gpt-oss-20b | 77 requirement profiles → correct licenses computed from choosealicense labels | Hit@1 · Hit@3 · Precision@3 · violation rate per requirement |
+| **RQ2** Claim verification | DeBERTa-v3-large vs RoBERTa-large on clause–claim pairs | 729 auto-labelled pairs · 146 hand-labelled (κ = 0.88) | Accuracy · per-class P / R / F1 · **entailment precision** |
+| **RQ3** Explanation faithfulness | Run full pipeline; compare with LLM-only baseline (`--no-verify`) | License text itself (cited clause) | % quotes found verbatim · % claims verified / unverified / contradicted |
 - Ground truth = public data, not expert opinion
 - Manifest compatibility (OSADL matrix) → Phase 2
 ---
@@ -382,13 +443,16 @@ Charts are grouped in the **Figures** section at the end (A1–A4), referenced a
 ---
 
 ## 19. Results — RQ1: Stage 1 Recommendation
-| Correct licenses per description | n | Hit@1 | Hit@3 | Precision@3 |
+**Reading this table:** each description has an **answer key** ("gold") — the licenses that fit all its requirements. **Gold size** = how many licenses are in that key. Few correct licenses = a hard, specific request; many = an easy, broad one.
+
+| Correct licenses per description (gold size) | n | Hit@1 | Hit@3 | Precision@3 |
 |---|---|---|---|---|
 | **All** | 104 | **0.56** | **0.74** | 0.55 |
 | 1–3 (hardest) | 47 | 0.40 | 0.60 | 0.42 |
 | 4–10 | 35 | 0.54 | 0.77 | 0.51 |
 | > 10 (easiest) | 22 | 0.91 | 1.00 | 0.88 |
 - 104 descriptions covering all 70 profiles (free-tier limit: 200k tokens/day)
+- **Example of reading a row:** when only 1–3 licenses fit, the first pick was right 40% of the time and one of the three picks was right 60% of the time
 - Easy requests: near-perfect · specific requests: correct top-3 only **60%**
 - Most broken: **trademark 54%** · no-documentation 39% · copyleft level 21% · network 12%
 - Over-defaults to **Apache-2.0** (top pick 30×) even when it breaks a requirement
@@ -423,6 +487,7 @@ Charts are grouped in the **Figures** section at the end (A1–A4), referenced a
 ---
 
 ## 22. Next Steps (Phase 2)
+- **Oracle-input experiment:** give Stage 1 the exact requirements instead of the description → separates misunderstanding errors from license-knowledge errors (e.g. is the 54% trademark miss a reading problem or a knowledge problem?)
 - Rules engine (v2): check Stage 1 picks against stated requirements & dependency compatibility (26% of descriptions get no correct license today)
 - Manifest evaluation with OSADL compatibility ground truth
 - Build FastAPI backend + web UI
@@ -470,5 +535,5 @@ Charts are grouped in the **Figures** section at the end (A1–A4), referenced a
 ## A4. RQ1 — Stage 1 Recommendation (supports slide 19)
 | Figure | Takeaway |
 |---|---|
-| `10_stage1_hits.png` | Hit@3 1.00 for broad requests, 0.60 when only 1–3 licenses fit |
+| `10_stage1_hits.png` | Hit@3 1.00 when many licenses fit, 0.60 when only 1–3 fit (groups = how many licenses are a correct answer) |
 | `11_stage1_violations.png` | Trademark (54%) and no-documentation (39%) requirements broken most often |
