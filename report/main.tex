@@ -1,0 +1,59 @@
+\documentclass[sigconf,nonacm,balance=false]{acmart}
+\usepackage{popets}
+
+% No copyright block, venue headers, DOI or ISBN (nonacm + copyright none).
+\setcopyright{none}
+\settopmatter{printacmref=false, printccs=false, printfolios=true}
+
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{multirow}
+
+\setlist{itemsep=2pt, topsep=4pt}
+\graphicspath{{figures/}}
+
+\newcommand{\todo}[1]{{\color{magenta}\bfseries [To-do: #1]}}
+\newcommand{\fix}[1]{{\color{red}#1}}
+\newcommand{\sys}{\textsc{LicenseWise}}
+
+\begin{document}
+
+\title{LicenseWise: Explaining and Verifying Open-Source License Recommendations with LLMs and Natural Language Inference}
+\subtitle{ENSF 621 --- Phase 1 Report}
+
+\author{Opeyemi Ajegbomogun}
+\affiliation{%
+  \institution{University of Calgary}
+  \department{Department of Electrical and Software Engineering}
+  \city{Calgary}
+  \country{Canada}}
+
+\author{Okemawo Obadofin}
+\affiliation{%
+  \institution{University of Calgary}
+  \department{Department of Electrical and Software Engineering}
+  \city{Calgary}
+  \country{Canada}}
+
+\renewcommand{\shortauthors}{Ajegbomogun and Obadofin}
+
+\input{sections/abstract}
+
+\keywords{open-source licensing, large language models, natural language inference, explainability, software engineering for ML}
+
+\maketitle
+
+\input{sections/introduction}
+\input{sections/related}
+\input{sections/engineering}
+\input{sections/methodology}
+\input{sections/results}
+\input{sections/discussion}
+\input{sections/limitations}
+\input{sections/conclusion}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+
+\end{document}

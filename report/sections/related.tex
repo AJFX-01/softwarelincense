@@ -1,0 +1,17 @@
+\section{Related Work}
+\label{s:related}
+
+\paragraph{Understanding and identifying licenses.}
+Empirical studies show that developers misunderstand license terms and struggle with license combinations~\cite{almeida2017developers}, and that license usage in practice is complex and error-prone~\cite{wu2024license}. Tools such as Ninka~\cite{german2010ninka} and the ScanCode toolkit~\cite{scancode} identify licenses in source files, and machine-learning approaches detect license exceptions~\cite{vendome2017exceptions}. More recently, LtRecognizer explores NLP- and LLM-based recognition of license terms~\cite{liu2027ltrecognizer}. These works focus on \emph{identifying} what license or term is present; \sys{} instead \emph{recommends} a license for a new project and explains it.
+
+\paragraph{Compatibility and compliance.}
+Kapitsaki et al.\ automate license compatibility checking using SPDX metadata~\cite{kapitsaki2017spdx}, and LiDetector detects incompatibilities among the licenses in a project~\cite{xu2023lidetector}. Curated resources such as the OSADL compatibility matrix~\cite{osadl} encode which licenses can be combined. These approaches audit existing code; our Phase~1 system flags dependency constraints at decision time and plans to use such a matrix as ground truth in Phase~2.
+
+\paragraph{License data.}
+The SPDX license list~\cite{spdx} standardises license identifiers, choosealicense.com~\cite{choosealicense} publishes machine-readable permission, condition, and limitation labels, and the Software Heritage archive~\cite{dicosmo2017swh} underlies a large dataset of 6.5 million license-file variants with ScanCode detections~\cite{zacchiroli2022dataset}. We use all three: the first two as our knowledge base and ground truth, the third for exploratory analysis and to check how well our scope covers real-world use.
+
+\paragraph{Faithfulness and NLI-based verification.}
+Hallucination, generated content not supported by the source, is a well-documented weakness of neural text generation~\cite{ji2023hallucination,maynez2020faithfulness}. NLI models trained on corpora such as MNLI~\cite{williams2018mnli} and ANLI~\cite{nie2020anli} have been used to detect factual inconsistencies between a source and generated text~\cite{laban2022summac,honovich2022true}. Retrieval-augmented generation grounds outputs in retrieved passages~\cite{lewis2020rag}. \sys{} combines these ideas: the explainer must quote a retrieved clause, and an NLI model (DeBERTa-v3~\cite{he2023debertav3}, compared with RoBERTa~\cite{liu2019roberta}) checks each claim against that clause.
+
+\paragraph{Synthetic evaluation data.}
+LLMs are increasingly used to generate data, including instructions and test inputs~\cite{wang2023selfinstruct}. We use one LLM to write natural-language project descriptions from structured requirement profiles and a different LLM to validate them, so that the model under test never generates or validates its own test data.

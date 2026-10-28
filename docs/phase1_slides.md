@@ -58,6 +58,70 @@ Charts are grouped in the **Figures** section at the end (A1–A4), referenced a
 - **RQ3 — Explanation faithfulness.** To what extent are LLM-generated license explanations grounded in the cited license text, in terms of quote fidelity and textual entailment, and how does NLI-based verification change the claims presented to developers compared with an unverified baseline?
 ---
 
+## 3c. Things to Know (1/2) — Core Terms
+| Term | What it means | Example |
+|---|---|---|
+| **License** | The legal rules for how others may use, change and share software | MIT, GPL-3.0, Apache-2.0 |
+| **License text** | The full official wording of a license | MIT's 3 paragraphs; GPL-3.0's ~35,000 characters |
+| **Label** | A short fact about a license: what it **permits**, what it **requires** (condition), what it **limits** | GPL-3.0 → *same license*, *disclose source* |
+| **Clause** | One self-contained passage of a license text — the unit we quote and check | "THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY…" |
+| **Claim** | One plain-English sentence the system writes about a license, citing one clause | "The software is provided without any warranty." (cites MIT clause C2) |
+| **Quote** | The exact words copied from the clause to back a claim | "WITHOUT WARRANTY OF ANY KIND" |
+| **Requirement** | One thing a developer needs from a license | "contributors must grant patent rights" |
+| **Profile** | A set of requirements we built for testing, plus the licenses that satisfy it | P009: patent grant + trademark protected + no change notes |
+| **Description** | A project described in everyday words, written from a profile | "I'm building a CLI tool… I want everyone to give permission to use my patents…" |
+| **Persona** | The imagined author of a description (gives variety in wording) | startup founder, university researcher, hobbyist |
+| **Manifest** | A project's list of the packages it uses | `requirements.txt`, `package.json` |
+| **Dependency** | A package your project uses — its license can limit yours | PyQt5 (GPL-3.0-only) |
+
+---
+
+## 3c-2. Requirement · Profile · Description · Persona — How They Differ
+
+**Requirement** — *one single need*
+- One thing a developer wants from a license, taken from the license labels
+- Example: "contributors must grant patent rights"
+- There are 6 kinds (share changes, network use, patent grant, trademark, attribution, change notes)
+
+**Profile** — *a test request we built: several requirements + the correct answer*
+- A combination of requirements, plus the list of licenses that satisfy all of them (the answer key)
+- Built by us automatically from the labels — never seen by the recommender
+- Example: **P009** = patent grant + trademark protected + no change notes → answer key: MPL-2.0, MS-PL, MS-RL, MulanPSL-2.0
+- 77 profiles in total
+
+**Description** — *the same request in everyday words*
+- A short project story written by an AI model from one profile, without naming any license
+- This is what the recommender actually reads — like a real developer's message
+- Example (from P009): "I'm building an open-source CLI tool for organizing music libraries… everyone who touches the code gives permission to use my patents… no one uses the project's name or logo…"
+- 190 descriptions kept
+
+**Persona** — *who is "speaking" in the description*
+- The imagined author of a description; it changes the wording, project type and tone — not the requirements
+- Example: the same P009 profile written as a **hobbyist developer**, a **startup founder** and a **university researcher**
+- Gives variety so we test understanding, not one fixed phrasing
+
+**How they connect:** requirements → combined into a **profile** (+ answer key) → written as **descriptions** in different **personas** → the recommender reads the description → its picks are checked against the profile's answer key
+
+---
+
+## 3d. Things to Know (2/2) — Models & Scoring Terms
+| Term | What it means | Example |
+|---|---|---|
+| **Stage 1 / Stage 2** | The two AI steps: Stage 1 **recommends** 3 licenses; Stage 2 **explains** each with claims | gpt-oss-120b does both |
+| **NLI (verifier)** | A model that reads a clause and a claim and decides if the clause **supports**, **says nothing about**, or **contradicts** the claim | DeBERTa-v3-large |
+| **Entailment / neutral / contradiction** | The NLI model's three possible answers | clause "no warranty" + claim "comes with a warranty" → contradiction |
+| **Verified / Unverified / Contradicted** | The badge a user sees, from the NLI answer | entailment → Verified |
+| **Answer key (gold)** | The licenses that truly satisfy a profile, computed from the labels | P009 → MPL-2.0, MS-PL, MS-RL, MulanPSL-2.0 |
+| **Gold size** | How many licenses are in the answer key — fewer = harder request | 1–3 = hard, >10 = easy |
+| **Hit@1 / Hit@3** | Is the first pick correct? / Is any of the 3 picks correct? | Hit@3 = 0.74 |
+| **Precision (for "Verified")** | Of all claims marked Verified, how many really are true | 0.94 |
+| **Copyleft** | A rule that changes must stay under the same license (weak = only changed files; strong = the whole work) | GPL = strong, MPL = weak, MIT = none |
+| **SPDX ID / OSI-approved** | The official short name of a license / approved as open source by the Open Source Initiative | `GPL-3.0-only` / 34 in scope |
+| **Knowledge base** | Our 34 in-scope licenses with their labels, texts and clauses | `licenses.json` |
+| **Zero-shot** | The AI gets no examples or training for this task — only the instructions and the license list | how Stage 1 runs |
+
+---
+
 ## 4. Requirements Elicitation
 - Instructor feedback: *evaluation is hard; no domain expert; scope it*
   → split into tasks with public ground truth

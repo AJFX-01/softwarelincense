@@ -1,0 +1,6 @@
+\section{Conclusion and Future Work}
+\label{s:conclusion}
+
+We presented \sys{}, an LLM\,+\,NLI pipeline that recommends open-source licenses and explains them with clause-cited claims, each checked by an independent verifier. Using evaluation data built entirely from public, curated sources, we found that an open-weight LLM places a correct license in its top three for 74\% of developer descriptions, but only 60\% when few licenses fit; and that an off-the-shelf NLI verifier is reliable when it confirms a claim (precision 0.94) but leaves about three in ten true claims unconfirmed. Explanations were fully traceable to verbatim license text.
+
+Phase~2 will (1) add a rule engine that selects licenses from structured requirements and checks dependency compatibility against the OSADL matrix; (2) connect the web UI to the FastAPI backend with job queuing, caching, and operational warnings; (3) complete RQ3 with a verified-versus-unverified comparison over all descriptions; (4) run the oracle-input experiment; (5) improve the verifier through claim phrasing, threshold tuning, or license-domain fine-tuning, and fix the remaining clause-segmentation defect; and (6) conduct a small user study on the clarity and usefulness of the explanations.

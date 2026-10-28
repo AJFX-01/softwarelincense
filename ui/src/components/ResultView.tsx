@@ -24,7 +24,7 @@ export function ResultView({ result, isSample, openEvidence = false }: { result:
     <div className="stack">
       {isSample && (
         <div className="notice">
-          <Info size={16} /> Demo mode: the backend is not connected, so this is a saved result from the real pipeline.
+          <Info size={16} /> Saved example: a result recorded earlier from the real pipeline. Press Recommend to run it live.
         </div>
       )}
 

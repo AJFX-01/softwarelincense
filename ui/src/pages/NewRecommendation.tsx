@@ -1,8 +1,9 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, CircleAlert, FileText, FileUp, LoaderCircle, Play, Sparkles, X } from "lucide-react";
 import { EXAMPLES, PIPELINE_STEPS, type Example } from "../mock";
 import { ALLOWED_MANIFESTS, parseManifest, validateManifest } from "../lib";
 import type { Result } from "../types";
+import { api } from "../api";
 import { ResultView } from "../components/ResultView";
 import { StatusBadge } from "../components/Evidence";
 
@@ -16,18 +17,57 @@ export function NewRecommendation({ preset, stage }: { preset: Example | null; s
   const [manifest, setManifest] = useState<Manifest | null>(preset?.manifest ?? null);
   const [error, setError] = useState<string | null>(null);
   const frozen = stage === "input" ? -1 : stage === "running" ? 4 : PIPELINE_STEPS.length;
-  const [step, setStep] = useState(preset ? frozen : -1); // -1 idle, 0..n running, n done
+  const resuming = Boolean(preset?.jobId && !preset.result);
+  const [step, setStep] = useState(resuming ? 0 : preset ? frozen : -1); // -1 idle, 0..n-1 running, n done
+  const [stepDetail, setStepDetail] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(preset && frozen === PIPELINE_STEPS.length ? preset.result : null);
-  const [example, setExample] = useState<Example | null>(preset);
+  const [isSample, setIsSample] = useState(Boolean(preset && !preset.jobId)); // saved demo result, not a live run
+  const [jobId, setJobId] = useState<string | null>(resuming ? preset!.jobId! : null);
   const fileInput = useRef<HTMLInputElement>(null);
 
+  // Poll the running job; the backend reports which pipeline step it is on.
+  useEffect(() => {
+    if (!jobId) return;
+    let stopped = false;
+    const poll = async () => {
+      try {
+        const job = await api.job(jobId);
+        if (stopped) return;
+        if (job.status === "done" && job.result) {
+          setStep(PIPELINE_STEPS.length);
+          setResult(job.result);
+          setJobId(null);
+          return;
+        }
+        if (job.status === "failed") {
+          setError(job.error ?? "The run failed.");
+          setStep(-1);
+          setJobId(null);
+          return;
+        }
+        const i = PIPELINE_STEPS.findIndex((s) => s.key === job.step);
+        setStep(i < 0 ? 0 : i);
+        setStepDetail(job.status === "queued" ? `Waiting for ${job.queued_ahead} earlier run(s)` : job.step_detail);
+      } catch (e) {
+        if (stopped) return;
+        setError((e as Error).message);
+        setStep(-1);
+        setJobId(null);
+        return;
+      }
+      timer = setTimeout(poll, 1500);
+    };
+    let timer = setTimeout(poll, 0);
+    return () => { stopped = true; clearTimeout(timer); };
+  }, [jobId]);
+
   function loadExample(ex: Example) {
-    setExample(ex);
     setDescription(ex.description);
     setManifest(ex.manifest);
     setTab(ex.manifest ? "manifest" : "describe");
     setError(null);
     setResult(null);
+    setJobId(null); // stop following any run in progress (it still finishes and shows in History)
     setStep(-1);
   }
 
@@ -44,20 +84,21 @@ export function NewRecommendation({ preset, stage }: { preset: Example | null; s
     setManifest({ name: file.name, content });
   }
 
-  function run() {
+  async function run() {
     if (!description.trim() && !manifest) return setError("Add a project description, a manifest, or both.");
     if (description.length > 4000) return setError("Description is longer than 4,000 characters.");
     setError(null);
     setResult(null);
-    let i = 0;
+    setIsSample(false);
+    setStepDetail(null);
     setStep(0);
-    const tick = () => {
-      i += 1;
-      setStep(i);
-      if (i < PIPELINE_STEPS.length) setTimeout(tick, PIPELINE_STEPS[i].ms);
-      else setResult((example ?? (manifest ? EXAMPLES[1] : EXAMPLES[0])).result);
-    };
-    setTimeout(tick, PIPELINE_STEPS[0].ms);
+    try {
+      const job = await api.recommend(description.trim(), manifest);
+      setJobId(job.id); // the effect above polls it (a reused result comes back on the first poll)
+    } catch (e) {
+      setError((e as Error).message);
+      setStep(-1);
+    }
   }
 
   const running = step >= 0 && step < PIPELINE_STEPS.length;
@@ -83,7 +124,7 @@ export function NewRecommendation({ preset, stage }: { preset: Example | null; s
                 rows={6}
                 placeholder="e.g. I'm building an analytics library that companies will host as SaaS. Improvements should come back to the community."
                 value={description}
-                onChange={(e) => { setDescription(e.target.value); setExample(null); }}
+                onChange={(e) => setDescription(e.target.value)}
               />
               <div className="hint">{description.length}/4000 · Plain language is fine — no license terms needed.</div>
             </>
@@ -127,7 +168,7 @@ export function NewRecommendation({ preset, stage }: { preset: Example | null; s
           </div>
         </section>
 
-        {result && <ResultView result={result} isSample openEvidence={stage === "evidence"} />}
+        {result && <ResultView result={result} isSample={isSample} openEvidence={stage === "evidence"} />}
       </div>
 
       <aside className="stack">
@@ -143,13 +184,13 @@ export function NewRecommendation({ preset, stage }: { preset: Example | null; s
                   </span>
                   <div>
                     <div className="step-title">{s.title}</div>
-                    <div className="muted small">{s.detail}</div>
+                    <div className="muted small">{state === "active" && stepDetail ? stepDetail : s.detail}</div>
                   </div>
                 </li>
               );
             })}
           </ol>
-          <div className="hint">Real runs take 1–5 min on Groq's free tier; the backend returns a job ID and the UI polls it.</div>
+          <div className="hint">Runs take about 30 s to 5 min on Groq's free tier. You can leave this page; the run continues and appears in History.</div>
         </section>
         <section className="card">
           <div className="card-title">Status labels</div>

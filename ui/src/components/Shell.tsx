@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Bell, BookOpen, Clock, Plus, Scale, Settings, Terminal, Workflow } from "lucide-react";
 import type { Page } from "../types";
+import { useBackendOnline } from "../api";
 
 const NAV: { group: string; items: { page: Page; label: string; icon: ReactNode }[] }[] = [
   {
@@ -68,6 +69,7 @@ export function Sidebar({ page, onNavigate }: { page: Page; onNavigate: (p: Page
 
 export function Topbar({ page }: { page: Page }) {
   const { title, subtitle } = PAGE_TITLES[page];
+  const online = useBackendOnline();
   return (
     <header className="topbar">
       <div>
@@ -75,7 +77,10 @@ export function Topbar({ page }: { page: Page }) {
         <div className="subtitle">{subtitle}</div>
       </div>
       <div className="topbar-right">
-        <span className="pill"><span className="dot" /> Demo data · backend not connected</span>
+        <span className="pill" title={online === false ? "Start it with: .venv/bin/uvicorn licensewise.api:app --port 8000" : undefined}>
+          <span className={online ? "dot dot-ok" : online === false ? "dot dot-bad" : "dot"} />
+          {online ? "Backend connected" : online === false ? "Backend offline" : "Checking backend…"}
+        </span>
         <span className="pill mono">gpt-oss-120b · DeBERTa-v3</span>
         <button className="icon-btn" aria-label="Notifications"><Bell size={17} /></button>
         <button className="icon-btn" aria-label="Settings"><Settings size={17} /></button>

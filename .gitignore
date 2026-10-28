@@ -35,3 +35,9 @@ assignment3.txt
 /disagreements.csv
 /agreement_reviewer*.csv
 Software_Licensing
+
+# Runs saved by the API (licensewise/api.py)
+data/runs/
+submission-templates
+submission-template/
+

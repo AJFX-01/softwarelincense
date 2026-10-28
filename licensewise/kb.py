@@ -26,3 +26,13 @@ def kb_id(spdx_id):
 def catalogue():
     """One line per in-scope license, for the Stage 1 prompt."""
     return "\n".join(f"- {i}: {l['title']}. {l['description']}" for i, l in sorted(licenses().items()))
+
+
+def copyleft(lic):
+    """"none", "file_or_library" or "whole_work" from the labels (same rule as scripts/build_scenarios.py)."""
+    conditions = set(lic["conditions"])
+    if "same-license" in conditions:
+        return "whole_work"
+    if conditions & {"same-license--file", "same-license--library"}:
+        return "file_or_library"
+    return "none"

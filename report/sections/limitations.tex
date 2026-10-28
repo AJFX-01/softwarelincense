@@ -1,0 +1,14 @@
+\section{Limitations and Threats to Validity}
+\label{s:limits}
+
+\paragraph{Construct validity.}
+Our ground truth is the choosealicense.com label set. Labels are a simplification of legal text, and some are debatable; for example, both EPL versions are labelled \emph{same license}, although EPL is often described as weak copyleft. The six requirements were chosen by us from the labels rather than elicited from developers, and the tool explains license \emph{text}, not legal interpretation or case law.
+
+\paragraph{Internal validity.}
+The test descriptions are written by an LLM and validated by another LLM. They may be cleaner and more explicit than real requests, and the round-trip filter keeps only clearly expressible requirements, so weak copyleft and ``network use must not trigger sharing'' are under-represented (7 profiles have no valid description). The writer occasionally returned more or fewer than three descriptions per profile (235 rather than 231), although each profile was evaluated once first. NLI labels are automatic; we measured their accuracy on a 146-pair sample, but in the agreement check the second label was assigned with the first visible, which may inflate $\kappa$. One clause-segmentation defect remains: in AFL-3.0 and OSL-3.0, numbered sections after section~1 are treated as list items of section~1's lead-in, so those clauses begin with an irrelevant sentence.
+
+\paragraph{External validity.}
+The catalogue contains only OSI-approved software licenses, the verifier is English-only (CeCILL-2.1 cannot be verified), and dual licensing (e.g., commercial licenses offered alongside the GPL) is out of scope. Results are for one LLM and two NLI models; other models may behave differently.
+
+\paragraph{Reliability and scale.}
+Due to the free API tier (200{,}000 tokens per day for gpt-oss-120b), RQ1 covers 104 of 190 valid descriptions (all 70 profiles, at least once each), and RQ3 is based on two end-to-end runs. LLM outputs are non-deterministic; we did not repeat runs to measure variance. The web UI is not yet connected to the backend, and a request takes one to five minutes on the free tier.

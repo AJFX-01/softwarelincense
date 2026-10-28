@@ -1,0 +1,24 @@
+\section{Introduction}
+\label{s:intro}
+
+Every piece of shared software carries a license: the legal terms that govern how others may use, modify, and redistribute it. Choosing a license is therefore one of the first engineering decisions in an open-source project, and every dependency a project adopts brings its own license terms with it. Prior work shows that developers often make these decisions with little legal training, struggle to interpret license language, and frequently misunderstand obligations such as copyleft or patent grants~\cite{almeida2017developers,wu2024license}. Two failures follow. A license may be a \emph{wrong fit}, failing to protect what the developer actually cares about, for example choosing a permissive license when improvements were meant to stay open. Or it may \emph{conflict} with the license of a dependency, for example releasing an application under proprietary terms while it is built on a strong-copyleft component.
+
+Existing help does not fit the individual project. Decision guides such as choosealicense.com~\cite{choosealicense} offer a few generic paths, do not consider dependencies, and do not explain why a license fits a particular case. License scanners and compliance tools detect licenses after code is written~\cite{german2010ninka,scancode,xu2023lidetector}; they audit rather than recommend. Lawyers are accurate but slow and costly for students, start-ups, and small teams. Large language models (LLMs) appear well suited to the gap: they can map informal goals (``I want companies running it as a service to share their improvements'') to precise license concepts and explain dense legal text in plain language. However, LLMs also produce confident statements that the source text does not support~\cite{ji2023hallucination,maynez2020faithfulness}, and in licensing a confident wrong answer is worse than no answer.
+
+This report describes \sys{}, the system built in Phase~1 of our ENSF~621 project. \sys{} pairs an LLM with an independent verifier. Stage~1 interprets a project description and/or a dependency manifest and recommends three licenses from a catalogue of 34 OSI-approved software licenses. Stage~2 explains each license with short claims, each of which must cite one license clause and quote it verbatim. A natural language inference (NLI) model then checks every claim against its cited clause, and the user sees each claim marked \emph{verified}, \emph{unverified}, or \emph{contradicted}, with the clause one click away.
+
+A central difficulty, raised early by our instructor, is evaluation without a legal domain expert. We address it by decomposing the problem into tasks whose ground truth can be computed or checked from public, curated data: license permission/condition/limitation labels from choosealicense.com, the SPDX license list~\cite{spdx}, and the Software Heritage license dataset~\cite{zacchiroli2022dataset}.
+
+We investigate three research questions:
+\begin{description}[leftmargin=1cm, labelwidth=0.8cm, labelsep=0.2cm, font=\normalfont\bfseries]
+    \item[RQ1] \textit{Requirement-to-license mapping.} To what extent can an open-weight LLM, conditioned on a curated license catalogue, map natural-language project requirements to open-source licenses that satisfy them, and how does accuracy vary with requirement specificity (the size of the admissible license set)?
+    \item[RQ2] \textit{Claim verification.} How reliably can off-the-shelf NLI models verify LLM-generated claims against the license clauses they cite, as measured on human-validated clause--claim pairs?
+    \item[RQ3] \textit{Explanation faithfulness.} To what extent are LLM-generated license explanations grounded in the cited license text, in terms of quote fidelity and textual entailment, and how does NLI-based verification change the claims presented to developers compared with an unverified baseline?
+\end{description}
+
+\noindent This report makes the following contributions:
+\begin{itemize}
+    \item \textbf{A working system} (\sys{} v1): a Python pipeline, a command-line interface, and a React web interface that recommend licenses and present clause-cited, verified explanations (Section~\ref{s:eng}).
+    \item \textbf{Two expert-free evaluation datasets}: 77 requirement profiles with computed answer keys and 190 validated natural-language descriptions (RQ1), and 729 clause--claim pairs with human-checked labels (RQ2) (Section~\ref{s:method}).
+    \item \textbf{An empirical evaluation} of an open-weight LLM recommender and two off-the-shelf NLI verifiers, identifying where each succeeds and fails (Section~\ref{s:results}).
+\end{itemize}

@@ -31,6 +31,11 @@ def _model():
     return tokenizer, model, device
 
 
+def load():
+    """Load the NLI model now instead of on the first claim (about 1.7 GB)."""
+    _model()
+
+
 def _nli(pairs):
     import torch
 

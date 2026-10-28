@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check, Minus, Search } from "lucide-react";
 import { LICENSES } from "../mock";
+import { api } from "../api";
 import { COPYLEFT_LABEL, humanize } from "../lib";
 import type { License } from "../types";
 import { Drawer } from "../components/Evidence";
@@ -28,12 +29,17 @@ export function Licenses() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["key"]>("all");
   const [open, setOpen] = useState<License | null>(null);
+  const [licenses, setLicenses] = useState<License[]>(LICENSES); // saved copy until the backend answers
+
+  useEffect(() => {
+    api.licenses().then(setLicenses, () => {});
+  }, []);
 
   const rows = useMemo(() => {
     const q = query.toLowerCase();
-    return LICENSES.filter((l) => (filter === "all" || l.copyleft === filter) &&
+    return licenses.filter((l) => (filter === "all" || l.copyleft === filter) &&
       (l.spdx_id.toLowerCase().includes(q) || l.title.toLowerCase().includes(q)));
-  }, [query, filter]);
+  }, [licenses, query, filter]);
 
   return (
     <div className="stack">
