@@ -28,6 +28,7 @@ data/external/
 /proposal.tex
 dataset-literature.txt
 assignment3.txt
+phase2.txt
 
 # Working copies of hand-labelled sheets (canonical copies live in data/processed/nli/)
 /review_sample.csv
@@ -41,3 +42,9 @@ data/runs/
 submission-templates
 submission-template/
 
+
+# Fine-tuning caches of frozen DeBERTa layers (scripts/finetune_nli.py), ~370 MB each
+data/processed/nli/finetune/cache/
+
+# Fine-tuned models (scripts/finetune_nli.py --final), ~0.9 GB
+models/
