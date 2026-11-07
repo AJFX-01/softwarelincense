@@ -535,3 +535,35 @@ Interpretation:
 - .github/workflows/ci.yml: on push/PR to main, job "backend" (ruff + pytest on Python
   3.14) and job "ui" (pnpm install --frozen-lockfile, oxlint, tsc + vite build). Checked
   locally in a clean venv from requirements-ci.txt: 27 passed; UI lint + build pass.
+
+-----------------------------------------------------------------------------------------
+2026-11-07  Phase 2 notebook + figures; interim Stage 1 findings
+-----------------------------------------------------------------------------------------
+- notebooks/phase2_results.ipynb (executes top to bottom, reads only saved files; re-run
+  it when the Stage 1 runs finish). Figures in docs/figures/p2_*.png:
+    p2_01 threshold curve (ML-5)          p2_04 per-label entailment recall: base vs
+    p2_02 verifier configurations (ML-6)        template seen vs template unseen
+    p2_03 confusion: base vs fine-tuned   p2_05 Stage 1 Hit@1/Hit@3/Prec@3 per config
+                                          p2_06 Stage 1 violations by constraint
+  Same validated palette/style as the Phase 1 notebook so figures match in the report.
+- Run pace: the free tier is a rolling 24 h window. Day 1 was fast (fresh quota); since
+  then ~1.6 desc/h (v2, 120b) and ~2.2 desc/h (20b). ETA: 20b on 2026-11-07 night, v2 on
+  2026-11-08 around midday.
+- Interim paired result (68 descriptions done in all configs):
+    v1/120b (Phase 1)  Hit@1 0.588  Hit@3 0.765  Prec@3 0.588
+    v2/120b            Hit@1 0.882  Hit@3 0.941  Prec@3 0.868
+    v1/20b             Hit@1 0.559  Hit@3 0.735  Prec@3 0.578   -> keep 120b
+  Violations v1 -> v2: trademark 0.51 -> 0.04, document-changes 0.33 -> 0.10, network-use
+  0.13 -> 0.01, patent 0.05 -> 0.00, share-changes 0.28 -> 0.26 (barely moved).
+- Why share-changes did not improve: every v2 share-changes violation is a profile asking
+  for WEAK copyleft ("file_or_library") combined with another constraint, with only 2-4
+  gold licenses; the model drops the copyleft requirement and picks permissive licenses
+  (Apache-2.0, MulanPSL-2.0, MS-PL, AFL-3.0), often at rank 1. The v2 prompt explained the
+  trademark/document-changes/network labels but not same-license--file/--library.
+  NOT fixed now: changing the prompt after seeing test results would tune on the test set.
+  Reported as a weakness; future work = explain the copyleft labels (and re-test on new
+  descriptions).
+- v2 cost: 3 of the first 62 v2 requests got HTTP 413 "request too large" (normal-length
+  descriptions, so most likely the longer prompt + max_completion_tokens vs the 8k
+  tokens/minute limit; not reproduced because the daily quota was used up). They will be
+  re-run after the main run; report as a cost of v2 on the free tier.
