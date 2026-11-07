@@ -23,9 +23,21 @@ def kb_id(spdx_id):
     return spdx_id if spdx_id in licenses() else None
 
 
-def catalogue():
-    """One line per in-scope license, for the Stage 1 prompt."""
-    return "\n".join(f"- {i}: {l['title']}. {l['description']}" for i, l in sorted(licenses().items()))
+def catalogue(labels=False):
+    """One line per in-scope license, for the Stage 1 prompt.
+
+    labels=True (Phase 2, prompt v2) adds the choosealicense.com permissions,
+    conditions and limitations, so the model can check a requirement such as
+    "no trademark rights" against the license instead of recalling it.
+    """
+    lines = []
+    for i, l in sorted(licenses().items()):
+        line = f"- {i}: {l['title']}. {l['description']}"
+        if labels:
+            line += (f" [permissions: {', '.join(l['permissions'])}; conditions: "
+                     f"{', '.join(l['conditions']) or 'none'}; limitations: {', '.join(l['limitations'])}]")
+        lines.append(line)
+    return "\n".join(lines)
 
 
 def copyleft(lic):

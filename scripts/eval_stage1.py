@@ -17,6 +17,11 @@ script can be re-run to resume. --score-only prints metrics from saved results.
 Usage:
     .venv/bin/python scripts/eval_stage1.py              # run (about 30 s per description on the free tier)
     .venv/bin/python scripts/eval_stage1.py --score-only
+    .venv/bin/python scripts/eval_stage1.py --prompt v2 --same-as-baseline --wait   # Phase 2
+
+Phase 2: results for a non-default prompt or model go to their own file
+(stage1_results_<prompt>_<model>.jsonl). --same-as-baseline runs only the
+descriptions in the Phase 1 results, so the comparison is paired.
 """
 
 import argparse
@@ -32,8 +37,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import groq  # noqa: E402
-
 from build_scenarios import DIMENSIONS  # noqa: E402
+
 from licensewise import kb, llm, stage1  # noqa: E402
 
 SCEN = ROOT / "data" / "processed" / "scenarios"
@@ -82,11 +87,17 @@ def score(results, profiles):
     return summary
 
 
-def _recommend_waiting(text, model, wait):
+def results_path(prompt, model):
+    if prompt == "v1" and model == llm.PIPELINE_MODEL:
+        return RESULTS  # Phase 1 baseline
+    return SCEN / f"stage1_results_{prompt}_{model.rsplit('/', 1)[-1]}.jsonl"
+
+
+def _recommend_waiting(text, model, wait, variant="v1"):
     """stage1.recommend; with wait=True, sleep through Groq's daily-quota (TPD) errors."""
     while True:
         try:
-            return stage1.recommend(text, model=model)
+            return stage1.recommend(text, model=model, variant=variant)
         except groq.RateLimitError as e:
             match = re.search(r"try again in (?:(\d+)h)?(?:(\d+)m)?([\d.]+)s", str(e))
             if not wait or not match:
@@ -107,7 +118,11 @@ def main():
                         help="evaluate one description from each uncovered profile before the rest")
     parser.add_argument("--wait", action="store_true",
                         help="sleep through the free-tier daily token quota instead of stopping")
+    parser.add_argument("--prompt", default="v1", choices=sorted(stage1.PROMPTS))
+    parser.add_argument("--same-as-baseline", action="store_true",
+                        help="only the descriptions in the Phase 1 results, in the same order")
     args = parser.parse_args()
+    RESULTS_OUT = results_path(args.prompt, args.model)
 
     profiles = {p["profile_id"]: p for p in load_jsonl(PROFILES)}
     descriptions = [d for d in load_jsonl(DESCRIPTIONS) if d["valid"]]
@@ -115,13 +130,17 @@ def main():
         d["desc_id"] = f"{d['profile_id']}-{i:03d}"
 
     if not args.score_only:
-        done = {r["desc_id"] for r in load_jsonl(RESULTS)}
+        done = {r["desc_id"] for r in load_jsonl(RESULTS_OUT)}
         todo = [d for d in descriptions if d["desc_id"] not in done]
         # Shuffled (fixed seed) so a run cut short by the daily quota is still a mixed sample.
         random.Random(621).shuffle(todo)
+        if args.same_as_baseline:
+            baseline = [r["desc_id"] for r in load_jsonl(RESULTS)]
+            by_id = {d["desc_id"]: d for d in todo}
+            todo = [by_id[i] for i in baseline if i in by_id]
         if args.one_per_profile_first:
             # Profiles with no result yet come first (one description each), then the rest.
-            covered = {r["profile_id"] for r in load_jsonl(RESULTS)}
+            covered = {r["profile_id"] for r in load_jsonl(RESULTS_OUT)}
             first, rest = [], []
             for d in todo:
                 if d["profile_id"] not in covered:
@@ -131,13 +150,14 @@ def main():
                     rest.append(d)
             todo = first + rest
         todo = todo[: args.limit]
-        print(f"{len(descriptions)} valid descriptions, {len(done)} done, {len(todo)} to run ({args.model})")
+        print(f"{len(descriptions)} valid descriptions, {len(done)} done, {len(todo)} to run "
+              f"({args.model}, prompt {args.prompt}) -> {RESULTS_OUT.name}")
         for i, d in enumerate(todo, 1):
             started = time.perf_counter()
             try:
-                out = _recommend_waiting(d["text"], args.model, args.wait)
+                out = _recommend_waiting(d["text"], args.model, args.wait, args.prompt)
             except groq.AuthenticationError:
-                raise SystemExit("Groq rejected the API key in .env.")
+                raise SystemExit("Groq rejected the API key in .env.") from None
             except groq.RateLimitError as e:
                 # Retries are exhausted, so this is the daily quota: stop and resume later.
                 print(f"  stopped at {d['desc_id']}: {e}", flush=True)
@@ -152,23 +172,26 @@ def main():
                            for r in out["recommendations"]]
             ids = [r["spdx_id"] for r in recommended]
             row = {"desc_id": d["desc_id"], "profile_id": d["profile_id"], "model": args.model,
+                   "prompt": args.prompt,
                    "gold_size": len(gold), "recommended": recommended,
                    "hit@1": bool(ids) and ids[0] in gold, "hit@3": any(i in gold for i in ids),
                    "precision@3": sum(i in gold for i in ids) / 3,
                    "requirements": out["requirements"],
                    "clarifying_questions": out["clarifying_questions"],
                    "seconds": round(time.perf_counter() - started, 1)}
-            with open(RESULTS, "a", encoding="utf-8") as f:
+            with open(RESULTS_OUT, "a", encoding="utf-8") as f:
                 f.write(json.dumps(row) + "\n")
             print(f"[{i}/{len(todo)}] {d['desc_id']} gold={len(gold):2} -> {', '.join(ids)}  "
                   f"hit@1={int(row['hit@1'])} hit@3={int(row['hit@3'])}", flush=True)
         print("tokens:", dict(llm.USAGE))
 
-    results = load_jsonl(RESULTS)
+    results = load_jsonl(RESULTS_OUT)
     if not results:
         return
     summary = score(results, profiles)
-    SUMMARY.write_text(json.dumps(summary, indent=2))
+    summary_path = SUMMARY if RESULTS_OUT == RESULTS else RESULTS_OUT.with_name(
+        RESULTS_OUT.stem.replace("results", "summary") + ".json")
+    summary_path.write_text(json.dumps(summary, indent=2))
     print(f"\n{'group':12} {'n':>4} {'hit@1':>7} {'hit@3':>7} {'prec@3':>7}")
     for name, m in summary.items():
         if name != "violation_rate_by_constraint":

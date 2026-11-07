@@ -23,6 +23,26 @@ Questions are in addition to the 3 recommendations, never instead of them.
 
 Never recommend a license that is not in the catalogue."""
 
+# Phase 2 (prompt v2): the catalogue carries each license's labels, and the model
+# must check every pick against every requirement before answering. Phase 1 error
+# analysis showed most wrong picks broke a stated constraint (trademark 54%,
+# document-changes 39% of picks) that the labels answer directly.
+SYSTEM_V2 = SYSTEM + """
+
+Each catalogue entry lists the license's labels (permissions, conditions, \
+limitations). Use them, not memory, to check fit. For example, a requirement that \
+the license must not grant trademark rights needs "trademark-use" under limitations; \
+a requirement that modifiers need not document their changes rules out any license \
+with "document-changes" under conditions; "network-use-disclose" means users over a \
+network must get the source.
+
+Work in this order: first list the requirements, then keep only licenses whose labels \
+satisfy ALL of them, then rank those. A license that breaks a stated requirement must \
+not be recommended while a license that satisfies all of them exists."""
+
+PROMPTS = {"v1": SYSTEM, "v2": SYSTEM_V2}
+DEFAULT_PROMPT = "v1"
+
 
 class Requirement(BaseModel):
     text: str
@@ -47,7 +67,7 @@ def _output_model():
     )
 
 
-def prompt(description, dependencies):
+def prompt(description, dependencies, variant=DEFAULT_PROMPT):
     parts = []
     if description:
         parts.append(f"Project description:\n{description.strip()}")
@@ -55,16 +75,16 @@ def prompt(description, dependencies):
         lines = [f"- {d['name']} ({d['ecosystem']}): {d['license'] or 'UNKNOWN (' + d['declared'] + ')'}"
                  for d in dependencies]
         parts.append("Dependencies and their declared licenses:\n" + "\n".join(lines))
-    parts.append(f"License catalogue (recommend only from these IDs):\n{kb.catalogue()}")
+    parts.append(f"License catalogue (recommend only from these IDs):\n{kb.catalogue(labels=variant != 'v1')}")
     return "\n\n".join(parts)
 
 
-def recommend(description=None, dependencies=None, model=llm.PIPELINE_MODEL):
+def recommend(description=None, dependencies=None, model=llm.PIPELINE_MODEL, variant=DEFAULT_PROMPT):
     if not description and not dependencies:
         raise ValueError("Provide a project description, a manifest, or both.")
-    user = prompt(description, dependencies)
+    user = prompt(description, dependencies, variant)
     for _attempt in range(2):
-        result = llm.complete_json(model, SYSTEM, user, _output_model())
+        result = llm.complete_json(model, PROMPTS[variant], user, _output_model())
         seen, recommendations = set(), []
         for r in result.recommendations:  # drop duplicates, keep order
             if r.spdx_id not in seen:
