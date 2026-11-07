@@ -1,0 +1,537 @@
+LICENSEWISE - PROJECT LOG
+ENSF 621, Group 3: Opeyemi Ajegbomogun, Okemawo Obadofin
+=========================================================================================
+
+What this file is
+-----------------
+A plain record of everything done in the project and WHY each decision was made, so the
+reasoning is not lost between phases, slides and the report. Part A covers Phase 1. Part B
+is a dated running log for Phase 2 and is appended to as work happens (newest entry last).
+Numbers here match data/processed/ and the Phase 1 report (report/).
+
+
+=========================================================================================
+PART A - PHASE 1
+=========================================================================================
+
+A1. The problem and the idea
+----------------------------
+- Every project needs a license, and every dependency brings its own license. Developers
+  usually have no legal training, so they either pick a license that does not protect what
+  they care about (e.g. permissive when they wanted improvements kept open) or one that
+  conflicts with a dependency (e.g. closed-source app built on GPL code).
+- Existing help does not fit: choosealicense.com gives a few generic paths, ignores
+  dependencies and never explains "why for YOUR project"; scanners (ScanCode, etc.) audit
+  after the fact instead of recommending; lawyers are slow and expensive.
+- Idea: an LLM turns plain-language goals into license concepts and explains licenses in
+  plain words. BUT LLMs state things confidently that the text does not support, and in
+  licensing a confident wrong answer is worse than none. So every claim the LLM makes must
+  cite and quote a license clause, and an independent NLI model checks the claim against that
+  clause. The user sees each claim as verified / unverified / contradicted, with the clause
+  one click away.
+  WHY an independent checker: it does not share the LLM's mistakes, and its output doubles as
+  an automatic faithfulness measure.
+
+A2. From the proposal to "v1" (what we cut and why)
+---------------------------------------------------
+The proposal described a bigger neuro-symbolic system: rules engine, vector-store retrieval,
+repository scanning, fine-tuned models, a hosted commercial LLM, expert validation.
+Phase 1 built a smaller core ("v1": description and/or manifest -> LLM + NLI) that could be
+built AND evaluated end to end:
+- Open-weight LLM on Groq's free API instead of a paid hosted model. WHY: cost, and
+  open weights are reproducible.
+- Keyword/anchor clause selection instead of vector retrieval. WHY: we only need the clauses
+  that express a license's labelled obligations, the labels tell us which ones, and full
+  license texts (GPL-3.0 is ~35,000 chars) exceed Groq's 8,000 tokens/minute free limit.
+- Package-registry metadata (PyPI, npm) instead of scanning repositories. WHY: simpler and
+  the declared license is what a developer sees.
+- No fine-tuning in Phase 1. WHY: get a measured baseline first.
+- Expert-free ground truth from curated public data. WHY: the instructor stressed we have no
+  legal expert, so evaluation must not depend on one.
+- Rules engine + OSADL compatibility matrix deferred to Phase 2 (Phase 1 results showed they
+  are needed, see A11).
+
+A3. Research questions
+----------------------
+RQ1 Requirement-to-license mapping: how well can an open-weight LLM, given a license
+    catalogue, map natural-language requirements to licenses that satisfy them, and how does
+    accuracy change with how specific the request is (size of the correct-license set)?
+RQ2 Claim verification: how reliably can off-the-shelf NLI models verify LLM claims against
+    the clauses they cite, measured on human-validated clause-claim pairs?
+RQ3 Explanation faithfulness: how grounded are the explanations in the cited text (quotes
+    found verbatim, entailment), and how does verification change what users see compared
+    with an unverified baseline? (Phase 1: preliminary only.)
+WHY these three: each can be answered from computed or checkable ground truth (A1, A6, A7),
+which is the expert-free constraint.
+
+A4. Data sources and why each one
+---------------------------------
+1. choosealicense.com repository (47 license files: YAML header + full text).
+   Kept: SPDX id, title, description, the 3 label lists, full text. Dropped website-only
+   fields. Label vocabulary: 5 permissions (commercial-use, modifications, distribution,
+   private-use, patent-use), 8 conditions (include-copyright, include-copyright--source,
+   document-changes, disclose-source, same-license, same-license--file,
+   same-license--library, network-use-disclose), 4 limitations (liability, warranty,
+   trademark-use, patent-use).
+   WHY: curated, consistent, machine-readable labels = the facts all ground truth is
+   computed from. This is what makes the evaluation expert-free.
+2. SPDX license list v3.29.0 (740 ids, OSI-approved flag) -> data/processed/spdx_ids.json.
+   WHY: to scope the catalogue (OSI flag) and to normalise dependency licenses to SPDX ids.
+3. Software Heritage license dataset (Zenodo 6379164): 6.5M deduplicated license files.
+   Used the 5 metadata tables + the published 20,000-file random text sample, joined on SHA1
+   and SWHID -> 20,000 rows x 16 columns (data/processed/sample20k_index.csv). Did NOT
+   download the 14 GB full-text archive.
+   WHY: real-world usage evidence for exploratory analysis and to check our scope covers
+   what people actually use. It is NOT ground truth: it says which license a file is, not
+   what a license requires, and has no labels. ("Why not use it instead of choosealicense?"
+   - because it has texts but no permission/condition/limitation labels.)
+4. PyPI / npm registries at run time (license_expression, license, trove classifiers;
+   npm "license"), normalised with exact SPDX matching + 41 common spellings (deps.py).
+   Dev-only dependencies ignored. WHY ignored: they are not shipped, so their licenses do not
+   bind the product. Unrecognised licenses are reported as UNKNOWN, never guessed.
+
+A5. Knowledge base, scope and clauses
+-------------------------------------
+- Scope 47 -> 34: removed 8 not meant for software (media, docs, data, fonts, hardware) and
+  5 not OSI-approved. WHY: the tool recommends software licenses; OSI approval is the usual
+  meaning of "open source" and avoids recommending licenses with disputed status.
+- Coverage check: 93.8% of Software Heritage sample files that have any detected license use
+  one of our 34. WHY it matters: shows the small scope still covers almost all real usage.
+- Copyleft classes from labels: permissive 21, weak copyleft 4, strong copyleft 9.
+- Language check: CeCILL-2.1 is French-only. It stays recommendable but its claims cannot be
+  verified (English NLI model), and the UI says so.
+- Clause segmentation (licensewise/clauses.py): split at blank lines, drop non-English
+  paragraphs, merge short headings into the next paragraph, attach a paragraph ending in ":"
+  (lead-in) to each list item below it. Result: 812 clauses from 33 English licenses, median
+  329 chars, all under the verifier's 512-token limit.
+  WHY clauses: (1) the NLI model takes max 512 tokens; (2) a claim must be checked against the
+  one passage that supports it; (3) users need a specific passage as evidence. WHY the lead-in
+  fix: without it a clause stopped at "...you must do the following:" and lost its meaning.
+- Clause for a label: per label an exact "anchor" pattern (e.g. "Limitation of Liability")
+  and a broader keyword pattern; rank clauses by anchor hits, keyword hits, then position.
+  Hand-checked on MIT, BSD, Apache-2.0, GPL-3.0, MPL-2.0. Same function picks Stage 2
+  evidence at run time.
+- Known defect: in AFL-3.0 and OSL-3.0, numbered sections "2)", "3)" after section 1 are read
+  as list items of section 1's lead-in, so those clauses start with an irrelevant sentence.
+  Left as a limitation in Phase 1.
+
+A6. The v1 pipeline (licensewise/) and why each choice
+------------------------------------------------------
+Steps: input -> dependency lookup -> Stage 1 recommend -> clause retrieval -> Stage 2
+explain -> NLI verify -> response.
+- LLM: openai/gpt-oss-120b on Groq, zero-shot (instructions + catalogue, no examples, no
+  training). WHY: strongest open-weight model on the free tier with strict JSON-schema output.
+- Strict JSON schema via Pydantic for every LLM call; Stage 1 license ids are a Literal of the
+  34 ids and exactly 3 recommendations are required; a duplicate triggers one retry.
+  WHY: the model cannot invent a license or return a malformed answer; 3 gives the user a
+  choice and gives us Hit@1/Hit@3. (Bug found: it once returned 0 recs / duplicates -> fixed
+  with min_length=max_length=3 + retry.)
+- Stage 1 also returns the requirements it understood, dependency conflicts and clarifying
+  questions. WHY: transparency (user sees what the model understood) and FR7/FR8.
+- Stage 2 gets only the clauses for the license's labelled obligations (<= 12,000 chars), and
+  must write 3-5 one-sentence claims each citing ONE clause id + an exact quote <= 300 chars.
+  WHY: full texts break the 8k tokens/minute limit; quoting forces grounding.
+- Verifier: (1) quote check - the quote must appear in the cited clause (ignoring case,
+  whitespace, quote style) else "unverified"; (2) DeBERTa NLI with premise = whole clause,
+  hypothesis = claim; entailment -> verified, neutral -> unverified, contradiction ->
+  contradicted. WHY whole clause: that is how the verifier was evaluated in RQ2.
+- If more than half of a license's claims fail, Stage 2 is re-run once with the failed claims
+  listed; the retry is kept only if it verifies more. WHY: cheap self-correction, bounded cost.
+- Disclaimer "based on license text only, not legal advice" on every result (safety NFR).
+- Other models (evaluation only): Qwen3.8-27B writes test descriptions, gpt-oss-20b checks
+  them. WHY different models: the system should not be tested on its own phrasing.
+- NLI models (both pre-trained by others, NOT trained by us in Phase 1):
+  MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli (chosen) and
+  FacebookAI/roberta-large-mnli (baseline). Run locally on Apple MPS.
+- Free-tier limits that shaped everything: ~8k tokens/min, 1k requests/day, 200k tokens/day
+  for gpt-oss-120b; Qwen 1k output tokens/min (so max_tokens 1000 for it).
+
+A7. Ground truth for RQ1: profiles and descriptions
+---------------------------------------------------
+- No public dataset pairs developer requests with correct licenses, so we computed one.
+- Six requirements chosen from the labels that (a) differ between our licenses and (b) a
+  developer would actually state: share changes (don't care / none / file-or-library /
+  whole work), network use (don't care / must trigger sharing / must not), patent grant,
+  trademark protection, no attribution required, no obligation to document changes (each
+  don't care / required).
+  WHY not all 17 labels: labels every license has (commercial use, warranty disclaimer) or
+  none has cannot tell licenses apart.
+- Combinations: 4 x 3 x 2 x 2 x 2 x 2 = 192 (not 2^6 = 64, because share_changes has 4
+  settings and network_use 3). Minus the empty request = 191. For each, the answer key = all
+  in-scope licenses whose labels satisfy every requirement. 114 have no license -> dropped ->
+  77 profiles, 1-29 correct licenses each (median 3).
+- Descriptions: Qwen3.8-27B wrote ~3 first-person descriptions per profile, each with a
+  different persona and project type and never naming a license. gpt-oss-20b then read each
+  description WITHOUT the profile and listed the requirements; kept only exact matches
+  (round-trip check). 235 written (writer sometimes gave more/fewer than 3: P056 had 9, P033
+  4, P015 2, P040 1), 190 passed (81%), covering 70 of 77 profiles. 122 distinct personas.
+  WHY descriptions and not the profile JSON: (1) real users write prose, not requirement
+  lists; (2) with structured requirements a simple label lookup - the same one that builds
+  the answer key - would solve the task and the LLM would be pointless; (3) giving the model
+  the profile would leak the answer. WHY personas: tests understanding of meaning rather than
+  one phrasing. WHY round-trip check: removes descriptions that do not actually express the
+  profile, so a "miss" is the recommender's fault, not the test's.
+
+A8. Ground truth for RQ2: clause-claim pairs and human labels
+-------------------------------------------------------------
+- 16 claim templates (17 labels minus private-use, which no license states in one clause),
+  each with a true and a negated sentence. For every English license and every label it
+  has: the label's clause + true claim (entailment), + negated claim (contradiction), + a
+  true claim about another label whose keywords are not in the clause (neutral).
+- 266 license-label combinations, 23 had no matching clause (mostly commercial use: e.g. BSD
+  never mentions selling) -> 243 -> 729 pairs (243 per class), on 173 distinct clauses
+  (of the 812). Claims and labels come from templates, not from a model.
+  WHY templates: labels are known by construction, so the set is large and cheap; the human
+  check then measures how often that construction is wrong.
+- Human validation: stratified random 150 pairs (50 per class). Two annotators, 75 each,
+  judging only from the clause: the first author, and a software engineer with experience
+  working with open-source licenses who is now a software-engineering researcher.
+  22 disagreements with the auto labels were settled by the team, 3 stayed ambiguous and were
+  excluded -> 146 human-labelled pairs. The clause fix later changed 23 sampled pairs, which
+  were relabelled (127 carried over: 96 unchanged, 31 lead-in only).
+- Agreement: each annotator also labelled 20 of the other's pairs; 39 usable double-labelled
+  pairs, 92.3% agreement, Cohen's kappa 0.88 ("almost perfect"). Caveat: the second label was
+  given with the first visible, which may inflate kappa.
+- Auto labels agree with the final human labels on 143/146 = 97.9%, so the full 729 can be
+  trusted for model comparison.
+
+A9. Evaluation protocol and metrics
+-----------------------------------
+- RQ1: Stage 1 gets only the description + catalogue. Hit@1 (first pick correct), Hit@3 (any
+  of 3 correct), Precision@3 (share of 3 correct), violation rate per requirement, grouped by
+  answer-key size 1-3 / 4-10 / >10 (= request specificity). Because of the 200k tokens/day
+  limit we ran one description per profile first, shuffled, resumable, waiting on quota, and
+  stopped at 104 descriptions covering all 70 profiles. WHY one-per-profile-first: every
+  profile is represented even if the quota stops us early.
+- RQ2: both NLI models on all 729 pairs (premise = clause, hypothesis = claim). Accuracy,
+  per-class P/R/F1, macro-F1, against auto labels and against the 146 human labels.
+  Key metric: entailment precision = how often "verified" is right.
+- RQ3: quotes found verbatim + verified/unverified/contradicted split on full runs.
+
+A10. Results
+------------
+Exploratory (Software Heritage 20k sample): 52% of files have exactly one in-scope license,
+6% a likely modified license, 8% several, 4% only out-of-scope, 28% none (mostly AUTHORS
+files and HTML). MIT 70.5% of in-scope files, then BSD-3-Clause 6.9%, Apache-2.0 6.2%,
+GPL-2.0 4.6%, GPL-3.0 4.1%; 488 distinct license ids; ScanCode confidence mean 99.1.
+RQ1 (104 descriptions): Hit@1 0.56, Hit@3 0.74, Precision@3 0.55.
+  answer key 1-3 (n=47): Hit@1 0.40, Hit@3 0.60 | 4-10 (n=35): 0.54 / 0.77 |
+  >10 (n=22): 0.91 / 1.00.
+  Violations: trademark 54%, document changes 39%, share changes (copyleft level) 21%,
+  network use 12%, patent 4%, attribution 0%. Apache-2.0 was first pick for 30 of 104.
+RQ2 (146 human pairs): DeBERTa accuracy 0.815, macro-F1 0.816, entailment precision 0.944,
+  recall 0.694; RoBERTa 0.733 / 0.729 / 0.900 / 0.551. On 729 auto pairs: 0.809 vs 0.782.
+  DeBERTa confusion (rows human): entailment 34/14/1, neutral 2/41/4, contradiction 0/6/44.
+  Never marked a contradiction as entailed. Main weakness: 29% of true claims left
+  "unverified". Recall by label is high for document changes (91%), liability (90%),
+  distribution (84%), low for commercial use (21%), same-license (25%), network use (25%) -
+  licenses say "sell"/"charge a fee", not "commercial use".
+RQ3 (2 full runs, 19 claims): 100% quotes verbatim; 11 verified, 7 unverified, 1
+  contradicted (an accurate paraphrase of AGPL-3.0 s.6, i.e. a verifier false positive).
+Interpretation:
+- The LLM handles broad requests but fails on specific ones, and its errors are on FACTS
+  already in the labels (trademark, document changes) -> a deterministic check / rules engine
+  should do the matching (Phase 2 direction).
+- The verifier is cautious; in licensing a wrong "verified" costs more than a missing one, so
+  this error profile is acceptable if the UI presents "unverified" as "not confirmed".
+
+A11. Software engineering in Phase 1
+------------------------------------
+- Requirements from: team brainstorming, instructor feedback (expert-free evaluation,
+  explicit scope), and peer review by another group. Peer review added FR11 (operational
+  warnings: quota limits, low-confidence verification) and an input-hardening security NFR,
+  and showed reviewers still assumed the proposal's vector-retrieval design, so we explained
+  v1 more clearly.
+- FR1 description, FR2 manifest, FR3 dependency license lookup, FR4 exactly 3 licenses,
+  FR5 clause-cited claims, FR6 verification, FR7 conflicts/unknown licenses, FR8 clarifying
+  questions, FR9 evidence view, FR10 CLI, FR11 warnings. Top five: FR1/FR2, FR4, FR5, FR6 and
+  faithfulness. NFRs: faithfulness (verified precision >= 0.9), transparency, safety
+  disclaimer, cost (free tier + local verifier), privacy (manifests not stored), security
+  (file type/size/parse checks, inputs untrusted), reproducibility.
+- CLI: scripts/recommend.py. Notebook: notebooks/phase1_results.ipynb (all figures 01-11).
+- React UI (ui/, Vite + TypeScript, pnpm): white background, thin light borders, sidebar and
+  topbar, no gradients, lighter accent colours (user preference). Pages: New recommendation,
+  History, License catalogue, Pipeline & evaluation; evidence drawer with highlighted quote
+  and NLI probabilities; status badges use icon + text, never colour alone.
+- .gitignore: .env (GROQ_API_KEY - never printed or committed), .venv, large Software
+  Heritage files, course material, working copies of label sheets, Software_Licensing/.
+- Deliverables: proposal (Software_Licensing/, PoPETs/ACM template, no watermarks, no
+  abstract/keywords), slides content docs/phase1_slides.md (plain English, diagrams over
+  tables), diagrams in docs/figures (generators in docs/tools/), report in report/ (research-
+  paper style, acmart + popets.sty).
+
+A12. Main problems hit in Phase 1 and fixes
+-------------------------------------------
+- Stage 1 returned 0 or duplicate licenses -> schema min/max 3 + one retry.
+- Qwen 429s (1k output tokens/min) -> max_tokens 1000.
+- Hit the 200k tokens/day limit mid-evaluation -> resumable, shuffled, wait-on-quota,
+  one-per-profile-first, run with nohup.
+- Clause retrieval picked wrong paragraphs -> anchors; colon lead-in fix; skip French text;
+  carry human labels over only when the clause change was cosmetic.
+- An early slide claimed "9/13 verified"; corrected to 6/10 (SaaS demo) and 5/9 (clinic).
+- Kappa claim corrected to its real scope (39 double-labelled pairs, not 146).
+
+A13. Phase 1 limitations carried into Phase 2
+---------------------------------------------
+- Labels simplify legal text (e.g. both EPL versions labelled same-license).
+- Test descriptions are LLM-written; may be cleaner than real requests; weak copyleft and
+  "network use must not trigger sharing" under-represented (7 profiles had no valid
+  description).
+- Kappa measured with first label visible.
+- AFL/OSL clause defect (A5).
+- English-only verifier; OSI-approved software licenses only; dual licensing out of scope.
+- RQ1 on 104 of 190 descriptions; RQ3 on 2 runs; no repeated runs to measure variance.
+
+
+=========================================================================================
+PART B - PHASE 2 (running log, newest last)
+=========================================================================================
+
+Phase 2 rubric (phase2.txt) asks for: problem/solution and RQs (Shaw 2003); CI/CD and GitHub
+integration with the UI; implementation details incl. database; how the architecture
+evolved; results, improvements and impact; future work; demo. ML: what changed in data and
+evaluation; different configurations/models explored; hyperparameter and architecture
+tuning compared with the baseline; evaluation metrics, analysis, strengths and weaknesses.
+
+Phase 2 plan (agreed 2026-11-06): stay on v1 (LLM + NLI), "nothing crazy". Improvements:
+  ML-1  Split the 190 descriptions by profile into tuning (~30%) and held-out test (~70%)
+        sets. WHY: tuning prompts on the reported set would overstate gains.
+  ML-2  Stage 1: give the model each license's labels in the catalogue (today kb.catalogue()
+        sends only title + description). WHY: the most violated requirements (trademark,
+        document changes) are exactly facts in the labels.
+  ML-3  Stage 1: requirements first, then licenses; score requirement extraction separately
+        (cheap version of the oracle-input experiment).
+  ML-4  Stage 1 configurations: gpt-oss-120b vs gpt-oss-20b vs another open model;
+        reasoning_effort low/medium/high; self-consistency (3 samples, vote).
+  ML-5  Verifier: tune the entailment threshold. (started 2026-11-06)
+  ML-6  Verifier: fine-tune DeBERTa on our pairs, grouped by license. (started 2026-11-06)
+  ML-7  Stage 2: phrase claims in the license's own words.
+  ML-8  RQ3: verified vs unverified comparison on ~30 test descriptions + blind kappa.
+  SE    GitHub Actions CI (lint, typecheck, pytest with LLM mocked, UI build); SQLite
+        instead of JSON job files; requirements.txt; optional Dockerfile.
+  Order: NLI work first (no Groq quota), then Stage 1 prompts on the tuning split, then model
+  comparisons on the test split (~1 config/day of quota), then RQ3; SE work in parallel.
+
+-----------------------------------------------------------------------------------------
+2026-10-27  Backend built and connected to the UI
+-----------------------------------------------------------------------------------------
+- licensewise/api.py (FastAPI). POST /api/recommendations returns a job id at once (202);
+  UI polls GET /api/recommendations/{id} every 1.5 s. WHY: a run takes 30 s - 5 min on the
+  free tier, too long for one HTTP request.
+- One worker thread, jobs run one at a time. WHY: Groq's per-minute token limit and the
+  single DeBERTa model in memory make parallel runs slower, not faster.
+- Jobs saved as JSON in data/runs/api/ (gitignored); runs cut off by a restart are marked
+  failed. Identical input (same model, description, manifest, verify flag) reuses the saved
+  result. WHY: history survives restarts; no tokens wasted on repeats.
+- Validation at submit: need description or manifest, description <= 4000 chars, manifest
+  name in {requirements.txt, pyproject.toml, package.json}, <= 100 KB, must parse and contain
+  dependencies. WHY: fail fast instead of minutes later; security NFR.
+- Plain-English errors for Groq rate limits and a missing GROQ_API_KEY (FR11).
+- pipeline.recommend() got an optional progress(step, detail) callback; the UI's step list
+  now follows the real run ("Stage 2 - explain: LGPL-2.1 (1/3)"). CLI/eval unchanged.
+- Also: kb.copyleft(), verifier.load() (model loads at server start, so the first run is not
+  slower), GET /api/licenses, GET /api/health.
+- UI: real runs, History from the backend (resumes a running job), catalogue from the API
+  with the saved copy as fallback, topbar "Backend connected/offline". Demo links
+  (?example=...&stage=...) still show saved results for screenshots. Vite proxies /api to
+  :8000 (no CORS needed).
+- Tested end to end in a browser: medical-imaging library description -> LGPL-2.1,
+  LGPL-3.0, MPL-2.0, 8/11 claims verified, 31 s.
+- Report/slides still say "UI not connected" - to update.
+
+-----------------------------------------------------------------------------------------
+2026-11-06  ML-5: entailment threshold tuning (scripts/tune_nli_threshold.py)
+-----------------------------------------------------------------------------------------
+- Rule: verified if P(entailment) >= t, else the larger of neutral/contradiction.
+  t swept 0.05-0.95. Chosen on the 583 pairs WITHOUT human labels (auto labels) as the best
+  macro-F1 that keeps entailment precision >= 0.90; reported on the 146 human pairs, which
+  play no part in the choice. WHY the 0.90 floor: faithfulness NFR - a wrong "verified" is
+  the costly error.
+- DeBERTa: chosen t = 0.10.
+    human test  argmax (Phase 1): acc 0.815, macro-F1 0.816, P(ent) 0.944, R(ent) 0.694
+    human test  t = 0.10        : acc 0.829, macro-F1 0.830, P(ent) 0.925, R(ent) 0.755
+  -> 9% more true claims confirmed for a 2-point precision cost, still above 0.90.
+- RoBERTa (baseline): chosen t = 0.30: acc 0.733 -> 0.747, P(ent) 0.900 -> 0.879,
+  R(ent) 0.551 -> 0.592 (falls below the 0.90 floor on the test set).
+- Output: data/processed/nli/threshold_predictions_*.json (curve + test metrics).
+- Not yet applied in licensewise/verifier.py; decide after ML-6 (fine-tuned model may need
+  its own threshold).
+
+-----------------------------------------------------------------------------------------
+2026-11-06  ML-6: fine-tuning DeBERTa on our pairs (scripts/finetune_nli.py) - IN PROGRESS
+-----------------------------------------------------------------------------------------
+- Machine has 8 GB unified memory; full fine-tuning of DeBERTa-v3-large needs ~7 GB for
+  AdamW states alone, so only the top K encoder layers + pooler + classifier are trained.
+  K is a hyperparameter (K=0 = head only). WHY not a smaller model: the large model's NLI
+  pre-training is what makes it good; partial fine-tuning keeps it.
+- Evaluation: 5-fold cross-validation GROUPED BY LICENSE, so every prediction comes from a
+  model that never saw that license. Out-of-fold predictions for all 729 pairs.
+  Hyperparameters compared on the 583 non-human pairs; the 146 human pairs are the test set.
+  Training targets: human label where available, else auto label.
+  WHY grouped: random splits would put the same clause (with a different claim) in train and
+  test, inflating scores.
+- Second check, --group label: folds by license LABEL, so the claim templates of a held-out
+  label are never seen. WHY: our claims come from 16 templates; a model could memorise the
+  templates instead of learning to read clauses. This stress test is closer to new claim
+  wording from Stage 2.
+- Grid planned: K in {2, 4, 8} at lr 2e-5, 3 epochs, batch 8; then best K with lr 1e-5 and
+  5e-5; then the label-grouped stress test; then threshold tuning (ML-5) on the best
+  out-of-fold predictions. Results: data/processed/nli/finetune/results.json.
+- Before any training ran, the API/UI dev servers were stopped to free memory.
+- Problem: the first attempt (whole model loaded, lower layers frozen) stalled - the machine
+  was swapping ~13 GB, no epoch finished in 6 minutes. Freezing alone does not help because
+  the full 1.7 GB model still runs forward every step.
+- Fix: the frozen bottom 24-K layers give the same output for a pair every time, so they are
+  run ONCE over all 729 pairs and their output cached on disk (data/processed/nli/finetune/
+  cache/layer<24-K>.pt, ~185 MB, gitignored); training loads only the top K layers.
+  Mathematically the same as training the whole model with those layers frozen.
+- Sanity check before training: the untrained cached-bottom + top-4 model reproduced the
+  Phase 1 DeBERTa predictions on 729/729 pairs (max probability difference 0.0016, the
+  float16-vs-float32 rounding). Took 49 s instead of stalling.
+- Precision: the checkpoint is float16 (transformers 5 keeps it, so Phase 1 ran in float16).
+  Cached frozen outputs stay float16 like the baseline; trainable layers are loaded in
+  float32 because AdamW updates in float16 are unstable.
+- Second slowdown: even with caching, epoch 1 took 13 min, then 33 min after a padding fix.
+  A 15-step benchmark showed the step itself is fast (0.61 s on MPS, 0.99 s on CPU) but MPS
+  memory reached 3.3 GB after 15 steps: PyTorch's MPS allocator keeps buffers for every batch
+  shape, so memory grows until the machine swaps. Fix: torch.mps.empty_cache() every 20
+  steps. Epoch time 33 min -> 63 s, identical loss (0.3918), so results are unaffected.
+  Also: batches are now groups of similar-length pairs (shuffled order) to cut padding, and
+  the model loads in float16 with only the trainable top cast to float32.
+  Lesson: on an 8 GB Mac, benchmark a few steps before launching a long run.
+- The Mac went to sleep overnight (pmset log: repeated "Maintenance Sleep" from 04:03), which
+  is why K=4 took 185 min wall-clock instead of ~17. Runs now start under `caffeinate -i`.
+
+Round 1 results (grouped by license, lr 2e-5, 3 epochs, batch 8, seed 13):
+  146 human-labelled test pairs      acc    macroF1  P(ent)  R(ent)
+  Phase 1 DeBERTa, argmax            0.815  0.816    0.944   0.694
+  Phase 1 DeBERTa, t = 0.10 (ML-5)   0.829  0.830    0.925   0.755
+  fine-tuned, top 2 layers (K=2)     0.897  0.897    0.936   0.898
+  fine-tuned, top 4 layers (K=4)     0.925  0.925    0.978   0.918
+  (583 tuning pairs, auto labels: K=2 acc 0.919, K=4 acc 0.942 -> K=4 chosen on tuning set)
+  K=4 confusion (rows = human): entailment 45/4/0, neutral 1/43/3, contradiction 0/3/47.
+  -> True claims confirmed 34/49 -> 45/49; wrong "verified" 2 -> 1 (still never a
+     contradiction marked verified).
+- K=8 stopped: it needs a new layer-16 cache and was stalled (20 steps in 70 min, machine
+  swapping ~10.6 GB). Not run; K=4 is the configuration carried forward.
+- CAUTION before claiming this: claims come from 16 templates, and every template also
+  appears in training (only the license is held out). The model may have learned the
+  templates' wording rather than reading clauses. -> label-grouped stress test (running).
+
+Stress test result (K=4, folds grouped by LABEL, so a held-out label's claim templates are
+never seen in training), 2026-11-06:
+  146 human-labelled test pairs      acc    macroF1  P(ent)  R(ent)
+  Phase 1 DeBERTa, argmax            0.815  0.816    0.944   0.694
+  K=4, license held out              0.925  0.925    0.978   0.918
+  K=4, label held out (unseen wording) 0.911 0.911   0.933   0.857
+  All 729 pairs vs auto labels: baseline 0.809, license held out 0.942, label held out 0.898.
+  Label-held-out confusion: entailment 42/6/1, neutral 2/45/0, contradiction 1/3/46.
+Interpretation:
+- Most of the gain is real: even on claim wording never seen in training, accuracy rises
+  0.815 -> 0.911 and true claims confirmed 69% -> 86%, with verified precision 0.933 (above
+  the 0.90 faithfulness target).
+- Part of the license-held-out gain is template memorisation. Clearest case, entailment
+  recall for commercial use: baseline 0.21, template seen 1.00, template unseen 0.33.
+  Likewise modifications 0.71 / 1.00 / 0.84, disclose-source 0.50 / 0.83 / 0.58. Labels
+  that generalise: patent-use 0.41 -> 0.94, trademark 0.55 -> 1.00 even when unseen.
+- New cost: with unseen wording, 1 contradiction was marked verified (baseline: 0). Report it.
+- The label-held-out score is the honest estimate for real Stage 2 claims; report both.
+- Next: train the final K=4 model on all 729 pairs and use it in the app; Phase 2 follow-up:
+  paraphrase claims (several wordings per template) so training is less template-bound.
+- This run took 149 min: the process grew to 7.1 GB across folds (MPS memory not released
+  between folds) and swapped. Fix for future CV runs: one process per fold.
+
+-----------------------------------------------------------------------------------------
+2026-11-06  Final fine-tuned verifier trained and switched on in the app
+-----------------------------------------------------------------------------------------
+- scripts/finetune_nli.py --unfreeze 4 --final: K=4, lr 2e-5, 3 epochs, batch 8, seed 13,
+  trained on all 729 pairs (human label where available). ~4 min (76-88 s/epoch, single
+  process so no leak). Saved as a complete float16 model to
+  models/deberta-v3-large-license-nli/ (838 MB, gitignored) with training.json.
+  WHY train on all pairs: the cross-validation above estimates how well this recipe works
+  on unseen licenses/wording; the deployed model should learn from every labelled pair.
+- licensewise/verifier.py now uses the fine-tuned model when that folder exists;
+  LICENSEWISE_NLI_MODEL overrides (set it to the base model id to reproduce Phase 1 / run
+  the RQ3 baseline). Decision rule stays argmax (the ML-5 threshold was tuned for the base
+  model; no threshold needed on the fine-tuned one, whose verified precision is 0.93-0.98).
+  /api/health reports the model name only, not the local path.
+- Preview on REAL Stage 2 claims (not templates): the 37 claims with a found quote from the
+  saved pipeline runs (2 demo runs + API runs), re-verified with both models, no Groq calls.
+    base:       verified 24, unverified 11, contradicted 2
+    fine-tuned: verified 32, unverified 4,  contradicted 1
+  All 8 changed claims read as correct against their clauses (my reading, NOT human-
+  labelled), e.g. AGPL-3.0 "If you run the program as a SaaS, you must let remote users
+  download the source..." neutral -> verified; the Phase 1 false "contradicted" (AGPL-3.0
+  s.6, binaries + source) -> verified. Treat as a preview; the proper test is ML-8 (RQ3)
+  with human labels on new runs.
+- Still to do for ML-6: Phase 2 follow-up of paraphrased claims; add the fine-tuning results
+  to the notebook/figures; FR/NFR check that verified precision >= 0.90 holds (it does in
+  both CV settings: 0.978 and 0.933).
+
+-----------------------------------------------------------------------------------------
+2026-11-06  Plan cut to fit a 1-week deadline
+-----------------------------------------------------------------------------------------
+- Deadline is about 1 week away. Groq's free tier gives 200k tokens/day PER MODEL, and a
+  Stage 1 description costs ~4.2k tokens (v1) to ~6k (v2), i.e. 35-50 descriptions/day.
+  The full plan (tuning/test split, several prompts x models, self-consistency) needed
+  2-3 weeks of quota, so it was cut to:
+    KEEP  ML-2+ML-3 as ONE prompt change (v2), ML-4 as ONE model comparison (gpt-oss-20b),
+          ML-5/ML-6 (done), a small RQ3 check, CI + SQLite + requirements.txt, write-up.
+    DROP  separate tuning/test split (ML-1), self-consistency (3x tokens), ML-7 (claim
+          wording), paraphrase fine-tuning, the AFL/OSL clause bug -> all listed as future
+          work in the report.
+  WHY no tuning split: only ONE prompt variant is tried, designed from the Phase 1 error
+  analysis before seeing any new results, so there is no selection on the test set to
+  guard against. All comparisons are paired on the same 104 descriptions as Phase 1.
+
+-----------------------------------------------------------------------------------------
+2026-11-06  ML-2/ML-3: Stage 1 prompt v2 (labels in the catalogue + check-then-rank)
+-----------------------------------------------------------------------------------------
+- Phase 1 problem: kb.catalogue() gave Stage 1 only each license's title + one-paragraph
+  description. Picks broke stated constraints often: trademark 53.5% of picks,
+  document-changes 38.5%, share-changes 20.7%, network-use 12.3%. These are exactly the
+  facts the choosealicense labels hold (e.g. "trademark-use" in limitations), but the
+  model had to recall them from memory.
+- Change: kb.catalogue(labels=True) appends "[permissions: ...; conditions: ...;
+  limitations: ...]" to each line (+~1.5k input tokens). stage1.SYSTEM_V2 = v1 prompt +
+  how to read the labels (trademark, document-changes, network-use-disclose examples) +
+  "first list requirements, keep only licenses satisfying ALL, then rank" (ML-3 folded in).
+  stage1.recommend(..., variant="v1"|"v2"); DEFAULT_PROMPT stays "v1" until v2 is shown
+  to be better, so the app and Phase 1 numbers are unchanged for now.
+- scripts/eval_stage1.py: --prompt, --same-as-baseline (only the 104 Phase 1 descriptions,
+  in the same order, so a run cut short is still a paired sample); non-default prompt/model
+  results go to stage1_results_<prompt>_<model>.jsonl + matching summary json. Rows now
+  record "prompt".
+- Runs started 2026-11-06, background, --wait (sleeps through the daily quota), caffeinate:
+    v2 / gpt-oss-120b  -> stage1_run_v2_120b.log   (~6.0k tokens/desc, ~3 days for 104)
+    v1 / gpt-oss-20b   -> stage1_run_v1_20b.log    (ML-4 model comparison, ~3.7k/desc, ~2 days)
+  The two use separate per-model quotas, so they run at the same time.
+
+-----------------------------------------------------------------------------------------
+2026-11-06  SE: database, tests, CI, requirements
+-----------------------------------------------------------------------------------------
+- Database: licensewise/api.py now stores jobs in SQLite (data/runs/licensewise.db, table
+  jobs: id, input_key, status, created_at, data JSON) instead of one JSON file per job.
+  WHY SQLite: stdlib (no server to run for a single-user demo), atomic writes (a crash
+  mid-write no longer leaves a half-written JSON file), and history can be queried by
+  status/time. The whole job stays a JSON column because its shape (pipeline result) is
+  nested and still changing. Phase 1 JSON files in data/runs/api/ are imported once on
+  startup (the 2 existing runs were migrated). The in-memory dict stays as the cache.
+- Bug found by the new tests: the worker thread pool was created at import time, so the
+  app could not be started twice in one process (shutdown on the first stop). It is now
+  created in the FastAPI lifespan.
+- Tests (tests/, 27 tests, <1 s, no network/API key/model):
+    test_kb        copyleft levels, SPDX suffix mapping, v1/v2 catalogue
+    test_deps      package.json / requirements.txt / pyproject parsing, license normalising
+    test_stage1    LLM mocked: 3 distinct picks, duplicate-ID retry, question cap, v2 labels
+    test_verifier  NLI mocked: quote check (quote-style/whitespace insensitive), label mapping
+    test_api       pipeline mocked: 202 + polling, reuse of identical input, history summary,
+                   persistence across restart, friendly rate-limit error, 422s, 404
+- Lint: ruff (pyproject.toml). Long lines, `l` for a license record and zip(strict) are
+  allowed; 3 real issues fixed (raise ... from None). Formatter not enforced (would
+  rewrite 23 files and bury the history).
+- requirements.txt (runtime, pinned), requirements-dev.txt (+pytest, ruff, analysis libs),
+  requirements-ci.txt (no torch/transformers: tests mock the NLI model, CI stays fast).
+- .github/workflows/ci.yml: on push/PR to main, job "backend" (ruff + pytest on Python
+  3.14) and job "ui" (pnpm install --frozen-lockfile, oxlint, tsc + vite build). Checked
+  locally in a clean venv from requirements-ci.txt: 27 passed; UI lint + build pass.
