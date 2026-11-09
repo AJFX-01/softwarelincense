@@ -567,3 +567,28 @@ Interpretation:
   descriptions, so most likely the longer prompt + max_completion_tokens vs the 8k
   tokens/minute limit; not reproduced because the daily quota was used up). They will be
   re-run after the main run; report as a cost of v2 on the free tier.
+
+2026-11-09  Final Stage 1 results (all 104 paired descriptions); prompt v2 is the default
+-----------------------------------------------------------------------------------------
+- Runs: v1/20b finished 2026-11-07; v2/120b finished 2026-11-08 15:24 (stalled ~9 h while the
+  laptop slept on battery: caffeinate -i does not stop lid/battery sleep, and time.sleep()
+  does not count sleep time on macOS).
+- 413 fix: 6 v2 requests were "request too large" (Groq counts prompt + max_completion_tokens
+  against the 8k tokens/minute limit). licensewise/llm.complete_json now retries a 413 once
+  with max_completion_tokens=3000. All 6 then succeeded (5 of 6 hit@1). Same fix protects
+  the live app.
+- Final paired result, n = 104:
+    v1/120b (Phase 1)  Hit@1 0.558  Hit@3 0.740  Prec@3 0.548
+    v2/120b            Hit@1 0.885  Hit@3 0.942  Prec@3 0.849   <- default
+    v1/20b             Hit@1 0.548  Hit@3 0.692  Prec@3 0.519   -> keep 120b
+  v2 by gold size: 1-3 licenses 0.766 / 0.872 (n=47); 4-10 0.971 / 1.0 (n=35);
+  >10 1.0 / 1.0 (n=22). The strictest profiles remain the hard case.
+  Violations v1 -> v2: trademark 0.54 -> 0.07, document-changes 0.39 -> 0.07, network-use
+  0.12 -> 0.02, patent 0.04 -> 0.00, share-changes 0.21 -> 0.19 (still barely moved).
+- Share-changes on the full set: 14 v2 descriptions have a copyleft-level miss; 12 of them
+  ask for weak copyleft (file_or_library), 2 for whole-work copyleft. Conclusion unchanged
+  (the earlier "every case" became "12 of 14"; weak copyleft no longer always paired with a
+  second constraint).
+- stage1.DEFAULT_PROMPT = "v2". Notebook re-executed; p2_05/p2_06 regenerated.
+- Slides: online deck (version 13) and docs/phase2_slides.md updated with final numbers;
+  all "interim"/[FINAL] markers removed.

@@ -41,7 +41,7 @@ satisfy ALL of them, then rank those. A license that breaks a stated requirement
 not be recommended while a license that satisfies all of them exists."""
 
 PROMPTS = {"v1": SYSTEM, "v2": SYSTEM_V2}
-DEFAULT_PROMPT = "v1"
+DEFAULT_PROMPT = "v2"
 
 
 class Requirement(BaseModel):

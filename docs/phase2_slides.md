@@ -1,6 +1,6 @@
 # Phase 2 — Slide Content
 
-Placeholders: **[TEAM]** = only your team can fill · **[FINAL]** = number updates when the Stage 1 runs finish (re-run `notebooks/phase2_results.ipynb`).
+Placeholders: **[TEAM]** = only your team can fill. Stage 1 numbers are final (all 104 paired descriptions).
 Figures: `docs/figures/p2_*.png` (from `notebooks/phase2_results.ipynb` and `docs/tools/make_phase2.py`). Order follows the Phase 2 rubric: Phase 1 overview → software solution → ML components → results → future work → conclusion → demo.
 
 ---
@@ -201,17 +201,17 @@ Figures: `docs/figures/p2_*.png` (from `notebooks/phase2_results.ipynb` and `doc
 
 ---
 
-## 17. ML — Stage 1 Configurations (RQ1)  **[FINAL]**
+## 17. ML — Stage 1 Configurations (RQ1)
 *(insert `docs/figures/p2_05_stage1_configs.png`)*
 
-| Configuration (paired descriptions, n = 68 interim **[FINAL: 104]**) | Hit@1 | Hit@3 | Precision@3 |
+| Configuration (paired descriptions, n = 104) | Hit@1 | Hit@3 | Precision@3 |
 |---|---|---|---|
-| v1 prompt · gpt-oss-120b (Phase 1) | 0.588 | 0.765 | 0.588 |
-| **v2 prompt (labels + check-then-rank) · gpt-oss-120b** | **0.882** | **0.941** | **0.868** |
-| v1 prompt · gpt-oss-20b | 0.559 | 0.735 | 0.578 |
+| v1 prompt · gpt-oss-120b (Phase 1) | 0.558 | 0.740 | 0.548 |
+| **v2 prompt (labels + check-then-rank) · gpt-oss-120b** | **0.885** | **0.942** | **0.849** |
+| v1 prompt · gpt-oss-20b | 0.548 | 0.692 | 0.519 |
 - **One** new prompt, designed from the Phase 1 error analysis before any new results → no tuning on the test set
 - Smaller model: ~12% fewer tokens but slightly worse → keep gpt-oss-120b
-- Cost of v2: ~6k tokens per description vs ~4.2k; 3 requests too large for the free tier's per-minute limit
+- Cost of v2: ~6k tokens per description vs ~4.2k; 6 requests too large for the free tier's per-minute limit (retried with a smaller output cap)
 
 ---
 
@@ -220,12 +220,12 @@ Figures: `docs/figures/p2_*.png` (from `notebooks/phase2_results.ipynb` and `doc
 
 | Requirement broken (share of picks) | v1 | v2 |
 |---|---|---|
-| Trademark not granted | 0.51 | **0.04** |
-| No need to document changes | 0.33 | **0.10** |
-| Network use triggers source sharing | 0.13 | **0.01** |
-| Copyleft level (share changes) | 0.28 | 0.26 |
+| Trademark not granted | 0.54 | **0.07** |
+| No need to document changes | 0.39 | **0.07** |
+| Network use triggers source sharing | 0.12 | **0.02** |
+| Copyleft level (share changes) | 0.21 | 0.19 |
 - Labels fixed the requirements they spell out directly
-- **Copyleft level barely moved:** every remaining case asks for **weak copyleft** (LGPL/MPL-style) plus another requirement, with only 2–4 fitting licenses; the model falls back to permissive licenses (Apache-2.0, MulanPSL-2.0)
+- **Copyleft level barely moved:** 12 of the 14 descriptions with a miss ask for **weak copyleft** (LGPL/MPL-style), with only 2–4 fitting licenses; the model mostly falls back to permissive licenses (Apache-2.0, MulanPSL-2.0)
 - Not patched now: changing the prompt after seeing test results would tune on the test set → future work
 
 ---
@@ -234,7 +234,7 @@ Figures: `docs/figures/p2_*.png` (from `notebooks/phase2_results.ipynb` and `doc
 | Requirement | Target | Phase 2 status |
 |---|---|---|
 | FR1/FR2 Input (description / manifest) | both, either alone | ✅ in UI and API, validated |
-| FR4 Recommend 3 fitting licenses | — | ✅ Hit@3 0.94 **[FINAL]** (Phase 1: 0.74) |
+| FR4 Recommend 3 fitting licenses | — | ✅ Hit@3 0.94 (Phase 1: 0.74) |
 | FR5 Explain with cited clauses | every claim quotes a clause | ✅ |
 | FR6 Verify each claim | verified / unverified / contradicted | ✅ fine-tuned verifier |
 | NFR Faithfulness | "verified" precision ≥ 0.90 | ✅ 0.978 (0.933 on unseen wording) |
@@ -247,7 +247,7 @@ Figures: `docs/figures/p2_*.png` (from `notebooks/phase2_results.ipynb` and `doc
 
 ## 20. Strengths and Weaknesses
 **Strengths**
-- Correct license in the top 3 for ~94% of descriptions **[FINAL]**; top pick right ~88% (Phase 1: 56%)
+- Correct license in the top 3 for 94% of descriptions; top pick right 88.5% (Phase 1: 56%)
 - "Verified" is reliable: precision 0.98, and it now confirms 92% of true claims (Phase 1: 69%)
 - Every claim is traceable to an exact clause; full system runs on free tiers and a laptop
 - Tested, CI-checked, reproducible; every decision logged with its reason
@@ -262,7 +262,7 @@ Figures: `docs/figures/p2_*.png` (from `notebooks/phase2_results.ipynb` and `doc
 ---
 
 ## 21. Key Findings and Impact
-1. **Grounding beats model size:** giving the LLM the license labels lifted Hit@1 from 0.59 to 0.88 **[FINAL]**; a smaller model with the old prompt did worse
+1. **Grounding beats model size:** giving the LLM the license labels lifted Hit@1 from 0.56 to 0.885; a smaller model with the old prompt did worse
 2. **Domain adaptation fixes the verifier's blind spot:** fine-tuning 4 layers on 729 pairs confirms 92% of true claims instead of 69% while keeping precision above 0.9
 3. **Cheap enough for a laptop:** caching frozen layers turned an out-of-memory job into a 4-minute training run
 4. **Expert-free evaluation works:** computed answer keys + a small human-checked set gave clear, paired comparisons
@@ -281,7 +281,7 @@ Figures: `docs/figures/p2_*.png` (from `notebooks/phase2_results.ipynb` and `doc
 
 ## 23. Conclusion
 - **Phase 2 delivered:** a connected web app (FastAPI + SQLite + React), CI/CD on two branches, a fine-tuned verifier, and a label-grounded recommender
-- **Against the baseline:** recommendation Hit@1 0.56 → ~0.88 **[FINAL]**; verifier accuracy 0.815 → 0.925 with "verified" precision 0.98
+- **Against the baseline:** recommendation Hit@1 0.56 → 0.885; verifier accuracy 0.815 → 0.925 with "verified" precision 0.98
 - **Overall project:** LicenseWise shows that an LLM plus an independent, domain-adapted verifier can give **project-specific, checkable** license advice, and that it can be evaluated rigorously without a legal expert
 - Not legal advice, but a faster, transparent first step
 
