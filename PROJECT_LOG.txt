@@ -592,3 +592,10 @@ Interpretation:
 - stage1.DEFAULT_PROMPT = "v2". Notebook re-executed; p2_05/p2_06 regenerated.
 - Slides: online deck (version 13) and docs/phase2_slides.md updated with final numbers;
   all "interim"/[FINAL] markers removed.
+
+2026-11-15  CI fix: UI job failed at pnpm/action-setup
+-----------------------------------------------------------------------------------------
+- Error: "No pnpm version is specified". pnpm/action-setup@v4 reads packageManager from the
+  ROOT package.json; ours lives in ui/package.json (pnpm@11.9.0). Fixed by passing
+  package_json_file: ui/package.json to the action. Local install --frozen-lockfile, lint
+  and build all pass.
