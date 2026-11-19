@@ -599,3 +599,17 @@ Interpretation:
   ROOT package.json; ours lives in ui/package.json (pnpm@11.9.0). Fixed by passing
   package_json_file: ui/package.json to the action. Local install --frozen-lockfile, lint
   and build all pass.
+
+2026-11-18  Phase 2 report written in IEEE format (report_ieee/)
+-----------------------------------------------------------------------------------------
+- Requested format: IEEE conference (IEEEtran, template added in IEEE_Conference_Template/).
+  The Phase 1 report in report/ (acmart + popets.sty) is left unchanged.
+- report_ieee/: main.tex + sections/ (abstract, introduction, related, phase1, system, ml,
+  results, discussion, conclusion), IEEEtran.cls, references.bib (+ Shaw 2003), figures
+  copied from docs/figures. Bibliography style IEEEtran (numbered).
+- Follows phase2.txt: Phase 1 overview first; problem/solution/RQs with a Shaw table;
+  architecture evolution; implementation, database, UI-API integration, CI/CD; ML changes,
+  configurations, fine-tuning hyperparameters, results vs baseline, requirements table,
+  strengths/weaknesses, threats, future work, conclusion. Final Stage 1 numbers (n=104).
+- Built with tectonic (brew install tectonic; `tectonic -X compile main.tex` in report_ieee/).
+  9 pages, no undefined references. Still to fill: Individual Contributions ([TEAM]).

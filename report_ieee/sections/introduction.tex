@@ -1,0 +1,41 @@
+\section{Introduction}
+\label{s:intro}
+
+\subsection{Problem}
+Every piece of shared software carries a license that governs how others may use, modify, and redistribute it, and every dependency brings its own terms. Developers make these decisions with little legal training and often misunderstand obligations such as copyleft or patent grants~\cite{almeida2017developers,wu2024license}. Two failures follow: a \emph{wrong fit}, where the license does not protect what the developer cares about (e.g., a permissive license when improvements were meant to stay open), and a \emph{conflict} with a dependency's license (e.g., proprietary terms on top of a strong-copyleft component). Existing help does not fit the individual project. Decision guides such as choosealicense.com~\cite{choosealicense} offer a few generic paths and ignore dependencies; scanners and compliance tools~\cite{german2010ninka,scancode,xu2023lidetector} audit code after it is written; lawyers are accurate but slow and costly for students and small teams. LLM chatbots explain licenses well but produce confident statements the source text does not support~\cite{ji2023hallucination,maynez2020faithfulness}, and in licensing a confident wrong answer is worse than none.
+
+\subsection{Solution and Innovation}
+\sys{} recommends a license for a specific project \emph{before} code is released and makes its explanation checkable. Three ideas distinguish it: (1) the LLM recommends and explains only from a curated catalogue, and each claim must cite and quote one license clause; (2) an independent NLI verifier, adapted to license language by fine-tuning in Phase~2, labels each claim against its clause, and the user can open the clause in one click; and (3) the evaluation is \emph{expert-free}: answer keys are computed from public license labels rather than judged by opinion. Licensing is one of the first decisions in every open-source project, so a project-specific, checkable answer lowers legal risk for exactly the users who cannot afford a lawyer.
+
+\subsection{Research Questions}
+Phase~2 refines the Phase~1 questions; the additions are in italics.
+\begin{itemize}
+    \item \textbf{RQ1 (requirement-to-license mapping).} To what extent can an open-weight LLM, conditioned on a curated license catalogue, map natural-language project requirements to licenses that satisfy them; how does accuracy vary with requirement specificity; \emph{and how much does grounding the model in the catalogue's license labels help?}
+    \item \textbf{RQ2 (claim verification).} How reliably can NLI models, \emph{off the shelf and adapted to license text by fine-tuning}, verify LLM-generated claims against the clauses they cite, measured on human-validated clause--claim pairs?
+    \item \textbf{RQ3 (explanation faithfulness).} To what extent are LLM-generated explanations grounded in the cited text (quote fidelity, entailment), and how does NLI verification change the claims shown to developers compared with an unverified baseline?
+\end{itemize}
+
+Table~\ref{tab:shaw} classifies the questions with Shaw's scheme for software engineering research~\cite{shaw2003writing}.
+
+\begin{table}[tb]
+    \caption{Research questions in Shaw's categories~\cite{shaw2003writing}.}
+    \label{tab:shaw}
+    \centering
+    \footnotesize
+    \begin{tabularx}{\columnwidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+        \toprule
+        & \textbf{Question type} & \textbf{Result type} & \textbf{Validation} \\
+        \midrule
+        RQ1 & Method of development & Procedure (prompt v1 $\rightarrow$ v2) & Analysis: paired experiment, 104 descriptions, computed keys \\
+        RQ2 & Method for analysis & Technique + empirical model (fine-tuned verifier) & Analysis: grouped cross-validation, human-labelled test set \\
+        RQ3 & Characterisation of a system & Specific solution (verified pipeline) & Evaluation: verified vs.\ unverified claims on real runs \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\subsection{Contributions of Phase 2}
+\begin{itemize}
+    \item A \textbf{connected application}: React UI, FastAPI backend with asynchronous jobs, SQLite history, tests, and CI/CD on a two-branch GitHub workflow (Section~\ref{s:system}).
+    \item A \textbf{label-grounded recommender} (prompt v2) and a model-size comparison, evaluated on the same 104 descriptions as Phase~1 (Sections~\ref{ss:stage1method} and~\ref{ss:rq1}).
+    \item A \textbf{fine-tuned license verifier} trained on a laptop by caching frozen layers, with a test of whether it memorises claim wording (Sections~\ref{ss:verifiermethod} and~\ref{ss:rq2}).
+\end{itemize}

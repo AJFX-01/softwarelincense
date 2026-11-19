@@ -1,0 +1,17 @@
+\section{Related Work}
+\label{s:related}
+
+\subsubsection{Understanding and identifying licenses}
+Developers misunderstand license terms and combinations~\cite{almeida2017developers}, and license use in practice is complex and error-prone~\cite{wu2024license}. Ninka~\cite{german2010ninka} and ScanCode~\cite{scancode} identify licenses in files, machine learning detects license exceptions~\cite{vendome2017exceptions}, and LtRecognizer recognises license terms with NLP and LLMs~\cite{liu2027ltrecognizer}. These works \emph{identify} what is present; \sys{} \emph{recommends} and explains.
+
+\subsubsection{Compatibility and compliance}
+Kapitsaki et al.\ check compatibility from SPDX metadata~\cite{kapitsaki2017spdx}, LiDetector finds incompatibilities in a project~\cite{xu2023lidetector}, and the OSADL matrix~\cite{osadl} encodes which licenses combine. They audit existing code and do not explain their verdicts.
+
+\subsubsection{License data}
+The SPDX list~\cite{spdx} standardises identifiers, choosealicense.com~\cite{choosealicense} publishes machine-readable permission, condition, and limitation labels, and the Software Heritage archive~\cite{dicosmo2017swh} underlies a dataset of 6.5 million license files~\cite{zacchiroli2022dataset}. We use all three.
+
+\subsubsection{Faithfulness and NLI verification}
+Hallucination is a known weakness of neural generation~\cite{ji2023hallucination,maynez2020faithfulness}. NLI models trained on MNLI~\cite{williams2018mnli} and ANLI~\cite{nie2020anli} detect inconsistencies between a source and generated text~\cite{laban2022summac,honovich2022true}, and retrieval-augmented generation grounds outputs in retrieved passages~\cite{lewis2020rag}. Grounding alone does not produce a per-claim verdict; \sys{} combines quoting a retrieved clause with an NLI check by DeBERTa-v3~\cite{he2023debertav3}.
+
+\subsubsection{The gap}
+No existing tool both recommends a license for a specific project before release and verifies its own plain-language explanation against the license text.
