@@ -1,0 +1,172 @@
+{
+  "_title": "Stage 1: Phase 1 vs Phase 2 prompt",
+  "_about": [
+    "The same description (P005-013, see 05_description.json) and the same model",
+    "(gpt-oss-120b), run with the Phase 1 prompt (v1) and the Phase 2 prompt (v2). The only",
+    "change in v2: each catalogue line ends with the license's labels, and the instructions say",
+    "to turn each requirement into a label and check every pick against it. 'requirements' is",
+    "what the model wrote down from the description; 'recommended' shows each pick, whether it",
+    "is in the gold list, and which requirements it breaks."
+  ],
+  "catalogue_line": {
+    "phase1_v1": [
+      "- BSD-3-Clause: BSD 3-Clause \"New\" or \"Revised\" License. A permissive license similar to",
+      "the <a href=\"/licenses/bsd-2-clause/\">BSD 2-Clause License</a>, but with a 3rd clause that",
+      "prohibits others from using the name of the copyright holder or its contributors to",
+      "promote derived products without written consent."
+    ],
+    "phase2_v2": [
+      "- BSD-3-Clause: BSD 3-Clause \"New\" or \"Revised\" License. A permissive license similar to",
+      "the <a href=\"/licenses/bsd-2-clause/\">BSD 2-Clause License</a>, but with a 3rd clause that",
+      "prohibits others from using the name of the copyright holder or its contributors to",
+      "promote derived products without written consent. [permissions: commercial-use,",
+      "modifications, distribution, private-use; conditions: include-copyright; limitations:",
+      "liability, warranty]"
+    ]
+  },
+  "system_prompt": {
+    "phase1_v1": [
+      "You help software developers choose an open-source license.",
+      "",
+      "You are given the developer's project description and/or the licenses of the project's",
+      "dependencies, plus a catalogue of the licenses you may recommend.",
+      "",
+      "1. List the requirements the developer actually expressed (or that the dependency licenses",
+      "impose). Do not invent requirements the input does not support.",
+      "2. Recommend exactly 3 different licenses from the catalogue, best fit first, each with a",
+      "one-sentence reason tied to the requirements.",
+      "3. If a dependency's license constrains what the project can be licensed under (for",
+      "example, a strong copyleft dependency), list it as a conflict or constraint, and make sure",
+      "your recommendations respect it.",
+      "4. If the input is too vague to choose well, add up to 2 short clarifying questions.",
+      "Questions are in addition to the 3 recommendations, never instead of them.",
+      "",
+      "Never recommend a license that is not in the catalogue."
+    ],
+    "phase2_v2": [
+      "You help software developers choose an open-source license.",
+      "",
+      "You are given the developer's project description and/or the licenses of the project's",
+      "dependencies, plus a catalogue of the licenses you may recommend.",
+      "",
+      "1. List the requirements the developer actually expressed (or that the dependency licenses",
+      "impose). Do not invent requirements the input does not support.",
+      "2. Recommend exactly 3 different licenses from the catalogue, best fit first, each with a",
+      "one-sentence reason tied to the requirements.",
+      "3. If a dependency's license constrains what the project can be licensed under (for",
+      "example, a strong copyleft dependency), list it as a conflict or constraint, and make sure",
+      "your recommendations respect it.",
+      "4. If the input is too vague to choose well, add up to 2 short clarifying questions.",
+      "Questions are in addition to the 3 recommendations, never instead of them.",
+      "",
+      "Never recommend a license that is not in the catalogue.",
+      "",
+      "Each catalogue entry lists the license's labels (permissions, conditions, limitations).",
+      "Use them, not memory, to check fit. For example, a requirement that the license must not",
+      "grant trademark rights needs \"trademark-use\" under limitations; a requirement that",
+      "modifiers need not document their changes rules out any license with \"document-changes\"",
+      "under conditions; \"network-use-disclose\" means users over a network must get the source.",
+      "",
+      "Work in this order: first list the requirements, then keep only licenses whose labels",
+      "satisfy ALL of them, then rank those. A license that breaks a stated requirement must not",
+      "be recommended while a license that satisfies all of them exists."
+    ]
+  },
+  "result": {
+    "phase1_v1": {
+      "desc_id": "P005-013",
+      "profile_id": "P005",
+      "model": "openai/gpt-oss-120b",
+      "gold_size": 4,
+      "recommended": [
+        {
+          "spdx_id": "AFL-3.0",
+          "in_gold": false,
+          "violates": [
+            "document_changes"
+          ]
+        },
+        {
+          "spdx_id": "BSD-3-Clause",
+          "in_gold": false,
+          "violates": [
+            "trademark"
+          ]
+        },
+        {
+          "spdx_id": "NCSA",
+          "in_gold": false,
+          "violates": [
+            "trademark"
+          ]
+        }
+      ],
+      "hit@1": false,
+      "hit@3": false,
+      "precision@3": 0.0,
+      "requirements": [
+        {
+          "text": [
+            "The license must explicitly reserve our company name and brand assets, preventing others",
+            "from rebranding the tool as theirs."
+          ],
+          "source": "description"
+        },
+        {
+          "text": [
+            "The contribution process should be simple; contributors should not be required to maintain",
+            "a detailed changelog of every minor edit."
+          ],
+          "source": "description"
+        }
+      ],
+      "clarifying_questions": [],
+      "seconds": 29.5
+    },
+    "phase2_v2": {
+      "desc_id": "P005-013",
+      "profile_id": "P005",
+      "model": "openai/gpt-oss-120b",
+      "prompt": "v2",
+      "gold_size": 4,
+      "recommended": [
+        {
+          "spdx_id": "MS-PL",
+          "in_gold": true,
+          "violates": []
+        },
+        {
+          "spdx_id": "MulanPSL-2.0",
+          "in_gold": true,
+          "violates": []
+        },
+        {
+          "spdx_id": "MPL-2.0",
+          "in_gold": true,
+          "violates": []
+        }
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "precision@3": 1.0,
+      "requirements": [
+        {
+          "text": [
+            "License must reserve the company name and brand assets (requires a 'trademark-use'",
+            "limitation)."
+          ],
+          "source": "description"
+        },
+        {
+          "text": [
+            "Contributors should not be required to maintain a detailed changelog (license must not",
+            "have a 'document-changes' condition)."
+          ],
+          "source": "description"
+        }
+      ],
+      "clarifying_questions": [],
+      "seconds": 50.1
+    }
+  }
+}

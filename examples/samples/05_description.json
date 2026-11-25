@@ -1,0 +1,39 @@
+{
+  "_title": "A description",
+  "_about": [
+    "A test description: the project story LicenseWise reads. It never names a license or a",
+    "label. 'recovered' is what a second, different model (gpt-oss-20b) found when it read the",
+    "story without seeing the profile; it had to match the profile's requirements exactly,",
+    "otherwise the description was thrown away ('valid'). 190 of 235 passed. 'gold' is copied",
+    "from the profile."
+  ],
+  "description": {
+    "profile_id": "P005",
+    "persona": "Startup Founder",
+    "text": [
+      "We are open-sourcing our internal logging library to build goodwill in the developer",
+      "community. It is critical that the license explicitly reserves our company name and brand",
+      "assets, so nobody can rebrand this tool as theirs. Additionally, we want to keep the",
+      "contribution process simple, meaning contributors should not be obligated to maintain a",
+      "detailed changelog of every minor edit they make to the source code."
+    ],
+    "recovered": {
+      "share_changes": "unspecified",
+      "network_use": "unspecified",
+      "patent_grant": "unspecified",
+      "trademark": "protected",
+      "attribution": "unspecified",
+      "document_changes": "not_required"
+    },
+    "valid": true,
+    "gold": [
+      "MPL-2.0",
+      "MS-PL",
+      "MS-RL",
+      "MulanPSL-2.0"
+    ],
+    "generator": "qwen/qwen3.8-27b",
+    "checker": "openai/gpt-oss-20b",
+    "desc_id": "P005-013"
+  }
+}

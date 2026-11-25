@@ -1,0 +1,287 @@
+{
+  "license_k4_lr2e-05_e3_b8_s13": {
+    "config": "license_k4_lr2e-05_e3_b8_s13",
+    "unfreeze": 4,
+    "lr": 2e-05,
+    "epochs": 3,
+    "batch": 8,
+    "group": "license",
+    "seed": 13,
+    "base_model": "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
+    "minutes": 185.0,
+    "tuning_auto": {
+      "n": 583,
+      "accuracy": 0.942,
+      "macro_f1": 0.942,
+      "per_class": {
+        "entailment": {
+          "precision": 0.943,
+          "recall": 0.938,
+          "f1": 0.941,
+          "support": 195
+        },
+        "neutral": {
+          "precision": 0.912,
+          "recall": 0.917,
+          "f1": 0.915,
+          "support": 193
+        },
+        "contradiction": {
+          "precision": 0.969,
+          "recall": 0.969,
+          "f1": 0.969,
+          "support": 195
+        }
+      },
+      "confusion": {
+        "entailment": {
+          "entailment": 183,
+          "neutral": 11,
+          "contradiction": 1
+        },
+        "neutral": {
+          "entailment": 11,
+          "neutral": 177,
+          "contradiction": 5
+        },
+        "contradiction": {
+          "entailment": 0,
+          "neutral": 6,
+          "contradiction": 189
+        }
+      }
+    },
+    "human_test": {
+      "n": 146,
+      "accuracy": 0.925,
+      "macro_f1": 0.925,
+      "per_class": {
+        "entailment": {
+          "precision": 0.978,
+          "recall": 0.918,
+          "f1": 0.947,
+          "support": 49
+        },
+        "neutral": {
+          "precision": 0.86,
+          "recall": 0.915,
+          "f1": 0.887,
+          "support": 47
+        },
+        "contradiction": {
+          "precision": 0.94,
+          "recall": 0.94,
+          "f1": 0.94,
+          "support": 50
+        }
+      },
+      "confusion": {
+        "entailment": {
+          "entailment": 45,
+          "neutral": 4,
+          "contradiction": 0
+        },
+        "neutral": {
+          "entailment": 1,
+          "neutral": 43,
+          "contradiction": 3
+        },
+        "contradiction": {
+          "entailment": 0,
+          "neutral": 3,
+          "contradiction": 47
+        }
+      }
+    }
+  },
+  "license_k2_lr2e-05_e3_b8_s13": {
+    "config": "license_k2_lr2e-05_e3_b8_s13",
+    "unfreeze": 2,
+    "lr": 2e-05,
+    "epochs": 3,
+    "batch": 8,
+    "group": "license",
+    "seed": 13,
+    "base_model": "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
+    "minutes": 33.5,
+    "tuning_auto": {
+      "n": 583,
+      "accuracy": 0.919,
+      "macro_f1": 0.92,
+      "per_class": {
+        "entailment": {
+          "precision": 0.922,
+          "recall": 0.913,
+          "f1": 0.918,
+          "support": 195
+        },
+        "neutral": {
+          "precision": 0.881,
+          "recall": 0.886,
+          "f1": 0.884,
+          "support": 193
+        },
+        "contradiction": {
+          "precision": 0.954,
+          "recall": 0.959,
+          "f1": 0.957,
+          "support": 195
+        }
+      },
+      "confusion": {
+        "entailment": {
+          "entailment": 178,
+          "neutral": 16,
+          "contradiction": 1
+        },
+        "neutral": {
+          "entailment": 14,
+          "neutral": 171,
+          "contradiction": 8
+        },
+        "contradiction": {
+          "entailment": 1,
+          "neutral": 7,
+          "contradiction": 187
+        }
+      }
+    },
+    "human_test": {
+      "n": 146,
+      "accuracy": 0.897,
+      "macro_f1": 0.897,
+      "per_class": {
+        "entailment": {
+          "precision": 0.936,
+          "recall": 0.898,
+          "f1": 0.917,
+          "support": 49
+        },
+        "neutral": {
+          "precision": 0.84,
+          "recall": 0.894,
+          "f1": 0.866,
+          "support": 47
+        },
+        "contradiction": {
+          "precision": 0.918,
+          "recall": 0.9,
+          "f1": 0.909,
+          "support": 50
+        }
+      },
+      "confusion": {
+        "entailment": {
+          "entailment": 44,
+          "neutral": 4,
+          "contradiction": 1
+        },
+        "neutral": {
+          "entailment": 2,
+          "neutral": 42,
+          "contradiction": 3
+        },
+        "contradiction": {
+          "entailment": 1,
+          "neutral": 4,
+          "contradiction": 45
+        }
+      }
+    }
+  },
+  "label_k4_lr2e-05_e3_b8_s13": {
+    "config": "label_k4_lr2e-05_e3_b8_s13",
+    "unfreeze": 4,
+    "lr": 2e-05,
+    "epochs": 3,
+    "batch": 8,
+    "group": "label",
+    "seed": 13,
+    "base_model": "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
+    "minutes": 149.3,
+    "tuning_auto": {
+      "n": 583,
+      "accuracy": 0.892,
+      "macro_f1": 0.893,
+      "per_class": {
+        "entailment": {
+          "precision": 0.958,
+          "recall": 0.81,
+          "f1": 0.878,
+          "support": 195
+        },
+        "neutral": {
+          "precision": 0.79,
+          "recall": 0.938,
+          "f1": 0.858,
+          "support": 193
+        },
+        "contradiction": {
+          "precision": 0.958,
+          "recall": 0.928,
+          "f1": 0.943,
+          "support": 195
+        }
+      },
+      "confusion": {
+        "entailment": {
+          "entailment": 158,
+          "neutral": 34,
+          "contradiction": 3
+        },
+        "neutral": {
+          "entailment": 7,
+          "neutral": 181,
+          "contradiction": 5
+        },
+        "contradiction": {
+          "entailment": 0,
+          "neutral": 14,
+          "contradiction": 181
+        }
+      }
+    },
+    "human_test": {
+      "n": 146,
+      "accuracy": 0.911,
+      "macro_f1": 0.911,
+      "per_class": {
+        "entailment": {
+          "precision": 0.933,
+          "recall": 0.857,
+          "f1": 0.894,
+          "support": 49
+        },
+        "neutral": {
+          "precision": 0.833,
+          "recall": 0.957,
+          "f1": 0.891,
+          "support": 47
+        },
+        "contradiction": {
+          "precision": 0.979,
+          "recall": 0.92,
+          "f1": 0.948,
+          "support": 50
+        }
+      },
+      "confusion": {
+        "entailment": {
+          "entailment": 42,
+          "neutral": 6,
+          "contradiction": 1
+        },
+        "neutral": {
+          "entailment": 2,
+          "neutral": 45,
+          "contradiction": 0
+        },
+        "contradiction": {
+          "entailment": 1,
+          "neutral": 3,
+          "contradiction": 46
+        }
+      }
+    }
+  }
+}

@@ -32,8 +32,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import groq  # noqa: E402
-
 from build_scenarios import DIMENSIONS  # noqa: E402
+
 from licensewise import llm  # noqa: E402
 
 PROFILES = ROOT / "data" / "processed" / "scenarios" / "profiles.jsonl"
@@ -147,7 +147,7 @@ def main():
                              "gold": profile["gold"], "generator": llm.DESCRIPTION_MODEL,
                              "checker": llm.CHECK_MODEL})
         except groq.AuthenticationError:
-            raise SystemExit("Groq rejected the API key in .env.")
+            raise SystemExit("Groq rejected the API key in .env.") from None
         except (groq.APIStatusError, groq.APIConnectionError, ValueError) as e:
             print(f"  {profile['profile_id']}: skipped ({str(e)[:200]})")
             continue

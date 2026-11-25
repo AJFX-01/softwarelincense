@@ -54,4 +54,4 @@ export interface License {
   copyleft: "none" | "file_or_library" | "whole_work";
 }
 
-export type Page = "new" | "history" | "licenses" | "pipeline";
+export type Page = "new" | "history" | "licenses" | "pipeline" | "samples";

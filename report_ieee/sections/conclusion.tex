@@ -1,0 +1,19 @@
+\section{Future Work}
+\label{s:future}
+
+\begin{itemize}
+    \item \textbf{Weak copyleft:} explain the file- and library-level copyleft labels in the prompt, and re-test on \emph{new} descriptions to avoid tuning on the current set.
+    \item \textbf{Verifier generalisation:} paraphrase each claim template several times before fine-tuning to reduce memorisation, and human-label real Stage~2 claims to complete RQ3 with a verified-versus-unverified study and blind agreement.
+    \item \textbf{Deterministic checks:} add a rule engine over the labels and the OSADL compatibility matrix~\cite{osadl} to check picks and dependency conflicts after the LLM.
+    \item \textbf{Cost and stability:} a compact label-only catalogue to stay under per-request limits, and self-consistency voting for Stage~1.
+    \item \textbf{Users and scope:} a user study with developers on clarity and trust, non-OSI and custom licenses, and deployment behind authentication.
+\end{itemize}
+
+\section{Conclusion}
+\label{s:conclusion}
+
+Phase~2 turned \sys{} from a prototype into a connected application, with a FastAPI backend, SQLite history, a React UI, tests, and CI/CD on a two-branch workflow, and it addressed both weaknesses found in Phase~1. Grounding the recommender in license labels raised top-pick accuracy from 0.56 to 0.885, and fine-tuning the verifier raised its accuracy from 0.815 to 0.925 with verified precision of 0.98. Across both phases, the project shows that an LLM paired with an independent, domain-adapted verifier can give project-specific license advice that a developer can check clause by clause, and that such a system can be evaluated rigorously without a legal expert.
+
+\section*{Individual Contributions}
+\todo{Opeyemi Ajegbomogun: ...}\\
+\todo{Okemawo Obadofin: ...}

@@ -1,0 +1,30 @@
+\section{Discussion}
+\label{s:discussion}
+
+\subsection{Key Findings}
+
+\subsubsection{Grounding beats model size}
+Giving the LLM the license facts it previously had to recall raised Hit@1 from 0.56 to 0.885, whereas a smaller model with the old prompt did slightly worse than the baseline. The remaining errors concentrate on the one requirement the prompt did not explain (weak copyleft). The LLM is good at turning informal intent into requirements, but license facts should be supplied to it, not recalled from its training.
+
+\subsubsection{Domain adaptation fixes the verifier's blind spot}
+In Phase~1 the verifier missed claims whose wording differed from the license text (``sell'' versus ``commercial use''). Fine-tuning four layers on 729 pairs raised the share of true claims confirmed from 69\% to 92\% while verified precision stayed above 0.9, and most of the gain holds for wording not seen in training.
+
+\subsubsection{Fine-tuning a large verifier is feasible on a laptop}
+Caching the frozen layers and managing accelerator memory turned an out-of-memory job into a four-minute training run on an 8\,GB machine.
+
+\subsubsection{Expert-free evaluation works}
+Answer keys computed from curated labels, test inputs written by one model and checked by another, and a small human-checked label set gave paired comparisons whose effects are large relative to the measured label noise.
+
+\subsection{Impact}
+A developer now receives a project-specific license recommendation with explanations they can check clause by clause, instead of a generic quiz or an unverifiable chatbot answer. The whole system runs on a free API tier and a laptop, which matters for students and small teams, the users least able to pay for legal advice. The tool is not legal advice; it is a faster and transparent first step.
+
+\subsection{Strengths and Weaknesses}
+
+\subsubsection{Strengths}
+A correct license is in the top three for 94\% of descriptions and the top pick is right for 88.5\%. A \emph{verified} label is reliable (precision 0.98, 0.93 on unseen wording). Every claim is traceable to an exact clause, and the system is tested, continuously integrated, and reproducible, with each design decision and its reason recorded in a project log.
+
+\subsubsection{Weaknesses}
+Weak-copyleft requests still often receive permissive picks. Part of the verifier's gain is memorised template wording, and with unseen wording it marked one false claim as verified. Prompt v2 costs about 40\% more tokens, and the free-tier quota limits how many configurations can be compared.
+
+\subsection{Threats to Validity}
+\emph{Construct validity:} the ground truth is the choosealicense.com label set, a simplification of legal text with some debatable labels (e.g., EPL is labelled \emph{same license} although often described as weak copyleft), and the six requirements were chosen by us from the labels. \emph{Internal validity:} test descriptions are written and validated by LLMs and may be cleaner than real requests; weak copyleft is under-represented because the round-trip filter rejected more of those descriptions. Prompt v2 was designed after seeing Phase~1 errors on the same 104 descriptions; it was fixed before any v2 result was seen and not revised afterwards, but some optimism towards this set cannot be excluded. \emph{External validity:} the catalogue holds only OSI-approved software licenses, the verifier is English-only (CeCILL-2.1 cannot be verified), and results are for one LLM family. \emph{Reliability:} LLM outputs are non-deterministic and runs were not repeated to measure variance; the RQ3 comparison is small and not human-labelled.

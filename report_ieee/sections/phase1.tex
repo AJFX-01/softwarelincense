@@ -1,0 +1,11 @@
+\section{Overview of Phase 1}
+\label{s:phase1}
+
+\subsubsection{Pipeline}
+Given a project description and/or a dependency manifest, the Phase~1 pipeline (i) looks up each dependency's declared license on PyPI or npm and normalises it to SPDX; (ii) Stage~1: gpt-oss-120b, an open-weight LLM served by Groq~\cite{groq}, recommends exactly three licenses from the catalogue, with JSON-schema-constrained output; (iii) retrieves the clauses that express each license's obligations; (iv) Stage~2: the LLM writes three to five claims per license, each citing one clause and quoting it verbatim; and (v) checks every quote and runs DeBERTa-v3-large NLI~\cite{he2023debertav3,laurer2024less} with the clause as premise and the claim as hypothesis. A command-line interface and a React UI that displayed saved results were built.
+
+\subsubsection{Data, built without a legal expert}
+From choosealicense.com and SPDX we kept the \textbf{34} OSI-approved software licenses and split them into 812 clauses. For RQ1, six requirements a developer would state (copyleft level, network use, patent grant, trademark, attribution, change documentation) give 191 requirement combinations; computing which licenses satisfy each from the labels leaves \textbf{77 profiles} with known answer keys. One LLM (Qwen) wrote first-person project descriptions from the profiles, and a different LLM (gpt-oss-20b) checked them blind; \textbf{190} passed. For RQ2, templates produced \textbf{729 clause--claim pairs} (entailment, neutral, contradiction); two annotators checked \textbf{146} of them, agreeing with the automatic labels on 97.9\% (Cohen's $\kappa = 0.88$~\cite{cohen1960kappa}).
+
+\subsubsection{Results and open issues}
+On 104 descriptions covering all 70 described profiles, Stage~1 reached Hit@1 0.56 and Hit@3 0.74, but Hit@3 fell to 0.60 when only one to three licenses fit. Picks often broke stated requirements: trademark protection (54\% of picks), no obligation to document changes (39\%), copyleft level (21\%). DeBERTa outperformed RoBERTa-large-MNLI (accuracy 0.815 vs.\ 0.733) and was reliable when it said \emph{verified} (precision 0.944), but confirmed only 69\% of true claims. In two end-to-end runs all 19 quotes were verbatim and 58\% of claims were verified. The UI was not connected to a backend. These issues defined Phase~2.

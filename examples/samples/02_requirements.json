@@ -1,0 +1,65 @@
+{
+  "_title": "Requirements",
+  "_about": [
+    "Every requirement a test profile can contain: 6 kinds (dimensions), each with one or more",
+    "values. Each value has a plain sentence (what a developer wants) and a rule over a",
+    "license's labels that decides whether a license meets it. A kind left out of a profile",
+    "means 'don't care'. From scripts/build_scenarios.py."
+  ],
+  "requirements": [
+    {
+      "kind": "share_changes",
+      "value": "none",
+      "sentence": "Others may keep their changes private and use any license for derived work."
+    },
+    {
+      "kind": "share_changes",
+      "value": "file_or_library",
+      "sentence": [
+        "Changes to the project's own files or library must stay open, but it can be combined with",
+        "closed-source code."
+      ]
+    },
+    {
+      "kind": "share_changes",
+      "value": "whole_work",
+      "sentence": "Any derived work that is distributed must be released under the same license."
+    },
+    {
+      "kind": "network_use",
+      "value": "must_disclose",
+      "sentence": [
+        "Offering the software to users over a network (e.g. SaaS) must trigger the obligation to",
+        "share source code."
+      ]
+    },
+    {
+      "kind": "network_use",
+      "value": "must_not_trigger",
+      "sentence": "Running the software as a network service must NOT by itself require sharing source code."
+    },
+    {
+      "kind": "patent_grant",
+      "value": "required",
+      "sentence": "Contributors must explicitly grant users rights to their patents."
+    },
+    {
+      "kind": "trademark",
+      "value": "protected",
+      "sentence": "The license must explicitly NOT grant rights to the project's name, logos, or trademarks."
+    },
+    {
+      "kind": "attribution",
+      "value": "not_required",
+      "sentence": [
+        "Users should not even have to keep a copyright notice; the code should be as close to",
+        "public domain as possible."
+      ]
+    },
+    {
+      "kind": "document_changes",
+      "value": "not_required",
+      "sentence": "People who modify the code should not be obliged to document or mark what they changed."
+    }
+  ]
+}

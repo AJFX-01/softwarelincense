@@ -3,15 +3,19 @@
 A run takes 1-5 minutes on Groq's free tier, so POST /api/recommendations
 returns a job ID at once and the UI polls GET /api/recommendations/{id}.
 Jobs run one at a time (Groq's per-minute token limit and the single NLI
-model in memory make parallel runs slower, not faster) and are saved as JSON
-in data/runs/api/ so history survives a restart. Identical inputs reuse the
-finished result instead of spending tokens again.
+model in memory make parallel runs slower, not faster) and are saved in a
+SQLite database (data/runs/licensewise.db) so history survives a restart.
+Identical inputs reuse the finished result instead of spending tokens again.
+
+Phase 1 saved each job as a JSON file in data/runs/api/; those are imported
+into the database once on startup.
 
 Run:  .venv/bin/uvicorn licensewise.api:app --port 8000
 """
 
 import hashlib
 import json
+import sqlite3
 import tempfile
 import threading
 import uuid
@@ -26,7 +30,9 @@ from pydantic import BaseModel, Field
 
 from licensewise import ROOT, deps, kb, llm, pipeline, verifier
 
-RUNS = ROOT / "data" / "runs" / "api"
+RUNS = ROOT / "data" / "runs"
+DB = RUNS / "licensewise.db"
+LEGACY_JSON = RUNS / "api"  # Phase 1 job files
 MANIFESTS = ("requirements.txt", "pyproject.toml", "package.json")
 MAX_DESCRIPTION = 4000
 MAX_MANIFEST_BYTES = 100_000
@@ -35,7 +41,7 @@ STEPS = ["input", "dependencies", "stage1", "retrieval", "explain", "verify", "r
 
 _jobs: dict[str, dict] = {}
 _lock = threading.Lock()
-_worker = ThreadPoolExecutor(max_workers=1, thread_name_prefix="pipeline")
+_worker: ThreadPoolExecutor | None = None  # created per app start (see lifespan)
 
 
 class Manifest(BaseModel):
@@ -53,9 +59,21 @@ def _now():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def _db():
+    conn = sqlite3.connect(DB)
+    conn.execute("""CREATE TABLE IF NOT EXISTS jobs (
+        id TEXT PRIMARY KEY, input_key TEXT NOT NULL, status TEXT NOT NULL,
+        created_at TEXT NOT NULL, data TEXT NOT NULL)""")
+    conn.execute("CREATE INDEX IF NOT EXISTS jobs_created ON jobs(created_at)")
+    return conn
+
+
 def _save(job):
-    RUNS.mkdir(parents=True, exist_ok=True)
-    (RUNS / f"{job['id']}.json").write_text(json.dumps(job, indent=1))
+    """Upsert one job. Status, key and time are columns for querying; the rest is JSON."""
+    with _db() as conn:
+        conn.execute("INSERT OR REPLACE INTO jobs VALUES (?, ?, ?, ?, ?)",
+                     (job["id"], job["key"], job["status"], job["created_at"], json.dumps(job)))
+    conn.close()
 
 
 def _update(job_id, **fields):
@@ -82,8 +100,17 @@ def _summary(job):
 
 def _load_runs():
     """Read saved jobs; anything left queued or running was cut off by a restart."""
-    for path in sorted(RUNS.glob("*.json")):
+    RUNS.mkdir(parents=True, exist_ok=True)
+    _jobs.clear()
+    conn = _db()
+    known = {row[0] for row in conn.execute("SELECT id FROM jobs")}
+    for path in sorted(LEGACY_JSON.glob("*.json")):  # one-off import of Phase 1 files
         job = json.loads(path.read_text())
+        if job["id"] not in known:
+            _save(job)
+    jobs = [json.loads(row[0]) for row in conn.execute("SELECT data FROM jobs ORDER BY created_at")]
+    conn.close()
+    for job in jobs:
         if job["status"] in ("queued", "running"):
             job.update(status="failed", error="The server restarted before this run finished.")
             _save(job)
@@ -121,6 +148,8 @@ def _explain_error(e):
 
 @asynccontextmanager
 async def lifespan(_app):
+    global _worker
+    _worker = ThreadPoolExecutor(max_workers=1, thread_name_prefix="pipeline")
     _load_runs()
     _worker.submit(verifier.load)  # queued ahead of any job, so the first run is not slower
     yield
@@ -132,7 +161,7 @@ app = FastAPI(title="LicenseWise API", version="1.0", lifespan=lifespan)
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "model": llm.PIPELINE_MODEL, "nli_model": verifier.NLI_MODEL,
+    return {"status": "ok", "model": llm.PIPELINE_MODEL, "nli_model": verifier.NLI_MODEL.rsplit("/", 1)[-1],  # name only, not a local path
             "steps": STEPS}
 
 
@@ -177,7 +206,7 @@ def _check_manifest(manifest):
         try:
             _, names = deps.parse_manifest(path)
         except Exception:
-            raise HTTPException(422, f"Could not parse {manifest['name']}. Check that it is valid.")
+            raise HTTPException(422, f"Could not parse {manifest['name']}. Check that it is valid.") from None
     if not names:
         raise HTTPException(422, f"No dependencies found in {manifest['name']}.")
 
@@ -198,3 +227,39 @@ def get(job_id: str):
         queued_ahead = sum(j["status"] == "queued" and j["created_at"] < job["created_at"]
                            for j in _jobs.values()) if job["status"] == "queued" else 0
         return {**{k: v for k, v in job.items() if k != "key"}, "queued_ahead": queued_ahead}
+
+
+SAMPLES = ROOT / "examples" / "samples"  # written by scripts/build_examples.py
+
+
+def _sample_files():
+    return {p.stem: p for p in sorted(SAMPLES.glob("*.json"))}
+
+
+@app.get("/api/samples")
+def samples():
+    """The data samples, for the UI's Data samples page: name, title and the _about note."""
+    out = []
+    for name, path in _sample_files().items():
+        data = json.loads(path.read_text())
+        about = data.get("_about", "")
+        out.append({"name": name, "title": data.get("_title", name),
+                    "about": " ".join(about) if isinstance(about, list) else about})
+    return out
+
+
+@app.get("/api/samples/{name}")
+def sample(name: str):
+    path = _sample_files().get(name)  # only listed files, so no path tricks
+    if not path:
+        raise HTTPException(404, "No sample with this name.")
+    return json.loads(path.read_text())
+
+
+# In the container (Dockerfile) the built UI is served from the same origin as the API,
+# so one URL serves both. Mounted last so every /api route above takes priority.
+_UI_DIST = ROOT / "ui" / "dist"
+if _UI_DIST.is_dir():
+    from fastapi.staticfiles import StaticFiles
+
+    app.mount("/", StaticFiles(directory=_UI_DIST, html=True), name="ui")

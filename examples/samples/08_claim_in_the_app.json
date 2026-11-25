@@ -1,0 +1,47 @@
+{
+  "_title": "A claim in the app, before and after verifying",
+  "_about": [
+    "A claim from a real pipeline run (the hosted-SaaS demo,",
+    "data/processed/runs/demo_saas.json). Stage 2 (the LLM) writes 'text', the 'clause_id' it",
+    "relies on and an exact 'quote'. Then 'quote_found' checks the quote really is in that",
+    "clause, and the verifier reads the full 'clause_text' with the claim (a clause-claim pair)",
+    "and gives the 'nli' scores; the highest sets 'status'. The LLM never grades its own claim."
+  ],
+  "license": "GPL-3.0",
+  "before_verification": {
+    "text": [
+      "When you share a modified version, you must include a clear notice of the changes and the",
+      "date."
+    ],
+    "clause_id": "C3",
+    "quote": [
+      "The work must carry prominent notices stating that you modified it, and giving a relevant",
+      "date."
+    ]
+  },
+  "after_verification": {
+    "text": [
+      "When you share a modified version, you must include a clear notice of the changes and the",
+      "date."
+    ],
+    "clause_id": "C3",
+    "quote": [
+      "The work must carry prominent notices stating that you modified it, and giving a relevant",
+      "date."
+    ],
+    "quote_found": true,
+    "status": "verified",
+    "reason": "NLI: entailment (1.00)",
+    "nli": {
+      "entailment": 0.998,
+      "neutral": 0.002,
+      "contradiction": 0.0
+    },
+    "clause_text": [
+      "5. Conveying Modified Source Versions. You may convey a work based on the Program, or the",
+      "modifications to produce it from the Program, in the form of source code under the terms",
+      "of section 4, provided that you also meet all of these conditions: a) The work must carry",
+      "prominent notices stating that you modified it, and giving a relevant date."
+    ]
+  }
+}

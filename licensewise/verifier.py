@@ -8,10 +8,19 @@
    verifier was evaluated (data/processed/nli/).
 """
 
+import os
 import re
 from functools import cache
 
-NLI_MODEL = "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli"
+from licensewise import ROOT
+
+BASE_NLI_MODEL = "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli"
+# Phase 2: the same model with its top 4 layers fine-tuned on our clause/claim pairs
+# (scripts/finetune_nli.py --final). Used when present; LICENSEWISE_NLI_MODEL overrides
+# (e.g. set it to BASE_NLI_MODEL for the Phase 1 baseline).
+FINETUNED_NLI_MODEL = ROOT / "models" / "deberta-v3-large-license-nli"
+NLI_MODEL = os.environ.get("LICENSEWISE_NLI_MODEL") or (
+    str(FINETUNED_NLI_MODEL) if FINETUNED_NLI_MODEL.exists() else BASE_NLI_MODEL)
 STATUS = {"entailment": "verified", "contradiction": "contradicted", "neutral": "unverified"}
 
 

@@ -1,0 +1,58 @@
+\section{Machine Learning Components}
+\label{s:ml}
+
+\subsection{What Changed Since Phase 1}
+\label{ss:mlchanges}
+
+\subsubsection{Data}
+No new data were labelled. The 729 clause--claim pairs, used only for testing in Phase~1, became training data for the verifier through cross-validation. The training target is the human label where one exists (146 pairs) and the automatic label otherwise, which matches the human labels on 97.9\% of checked pairs. The 104 Stage~1 descriptions are unchanged, so every Stage~1 comparison is \emph{paired} with Phase~1.
+
+\subsubsection{Data transformation}
+The verifier is trained with its lower layers frozen. Their output for a pair never changes, so it is computed once for all 729 pairs and cached on disk in half precision (185\,MB); training then runs only the top layers. This is mathematically equivalent to training the full model with those layers frozen. Before training, the cached model reproduced the Phase~1 predictions on 729 of 729 pairs (maximum probability difference 0.0016). Stage~1 received a richer input: each catalogue line now carries the license's permission, condition, and limitation labels (about 1{,}500 extra input tokens).
+
+\subsubsection{Evaluation}
+Metrics are unchanged so that Phase~1 and Phase~2 numbers compare directly. For RQ1: Hit@1 (first pick in the answer key), Hit@3 (any of three), Precision@3 (share of the three), and, for each requirement, the share of picks that violate it, grouped by answer-key size. For RQ2: accuracy, macro-F1, and per-class precision and recall on the 146 human-labelled pairs. The key metrics are \emph{verified precision} (entailment precision, the faithfulness requirement, target $\geq 0.90$) and the share of true claims confirmed (entailment recall).
+
+\subsection{Verifier Configurations and Fine-Tuning}
+\label{ss:verifiermethod}
+
+We explored four verifier configurations against the Phase~1 baseline, DeBERTa-v3-large with an argmax decision.
+
+\subsubsection{Threshold tuning}
+The claim is \emph{verified} if $P(\text{entailment}) \geq t$; otherwise the larger of neutral and contradiction is used. We swept $t$ from 0.05 to 0.95 and chose the best macro-F1 that keeps entailment precision $\geq 0.90$ on the 583 pairs \emph{without} human labels, then reported on the 146 human pairs, which play no part in the choice. The chosen threshold was $t = 0.10$.
+
+\subsubsection{Partial fine-tuning}
+The development laptop has 8\,GB of unified memory, and full fine-tuning of the 435M-parameter model needs about 7\,GB for optimiser state alone. We therefore train only the top $K$ of 24 encoder layers plus the pooler and classifier; $K$ is the architectural hyperparameter. Partial fine-tuning keeps the broad NLI pre-training that made the large model the best Phase~1 verifier, which a smaller model would lose. Table~\ref{tab:hparams} lists the settings.
+
+\begin{table}[tb]
+    \caption{Verifier fine-tuning setup.}
+    \label{tab:hparams}
+    \centering
+    \footnotesize
+    \begin{tabularx}{\columnwidth}{@{}lX@{}}
+        \toprule
+        \textbf{Choice} & \textbf{Value and reason} \\
+        \midrule
+        Base model & DeBERTa-v3-large NLI (MNLI, FEVER, ANLI, LingNLI, WANLI)~\cite{laurer2024less} \\
+        Trainable layers & $K \in \{2, 4, 8\}$; $K=4$ chosen ($K=2$ under-fits; $K=8$ ran out of memory) \\
+        Optimiser & AdamW, learning rate $2\times10^{-5}$, weight decay 0.01, 10\% warm-up, gradient clipping 1.0 \\
+        Epochs / batch & 3 / 8, batches of similar-length pairs \\
+        Precision & cached frozen outputs in float16; trained layers in float32 \\
+        Validation & 5-fold cross-validation grouped by license; out-of-fold predictions \\
+        Selection & $K$ chosen on the 583 automatically labelled pairs (accuracy 0.919 for $K=2$, 0.942 for $K=4$) \\
+        Final model & retrained on all 729 pairs (about 4 minutes); deployed in the application \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+Folds are grouped by license, so every prediction comes from a model that never saw that license; random splits would place the same clause, with a different claim, in both training and test data. Because all claims come from 16 templates, a model could also learn the templates' wording instead of reading clauses. As a stress test we therefore repeated cross-validation with folds grouped by \emph{label}, so that the claim templates of a held-out label never appear in training; this is the closer estimate for the new wording that Stage~2 produces.
+
+\subsubsection{Engineering for a laptop}
+The first attempt, with the whole model loaded and the lower layers frozen, swapped about 13\,GB and finished no epoch in six minutes; caching the frozen layers fixed it. A second slowdown came from the Apple MPS allocator keeping buffers for every batch shape: clearing its cache every 20 steps cut an epoch from 33\,min to 63\,s with an identical loss.
+
+\subsection{Stage 1 Prompt and Model Configurations}
+\label{ss:stage1method}
+
+The Phase~1 error analysis showed that the requirements violated most often (trademark, change documentation, network use) are exactly the facts in the license labels, which the Phase~1 catalogue omitted, so the model had to recall them. \emph{Prompt v2} (i) appends each license's labels to its catalogue line, (ii) explains how to read the labels that were misused (e.g., \texttt{trademark-use} under limitations means trademarks are \emph{not} granted), and (iii) asks the model to list the stated requirements, keep only licenses that satisfy all of them, and then rank. To test whether model size matters more than grounding, we also ran the Phase~1 prompt on the smaller gpt-oss-20b.
+
+Groq's free tier allows 200{,}000 tokens per model per day, and one description costs about 4{,}200 tokens with prompt v1 and 6{,}000 with v2, so a full comparison takes several days. We therefore tried \emph{one} new prompt, designed from the Phase~1 error analysis before any new results were seen, and ran all configurations on the same 104 descriptions as Phase~1. Since no prompt was selected on the test set, no separate tuning split was needed, and every difference is a paired comparison.

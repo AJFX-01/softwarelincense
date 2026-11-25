@@ -8,7 +8,7 @@ import os
 from collections import Counter
 
 from dotenv import load_dotenv
-from groq import Groq
+from groq import APIStatusError, Groq
 from pydantic import BaseModel, ValidationError
 
 from licensewise import ROOT
@@ -65,9 +65,16 @@ def complete_json(model: str, system: str, user: str, output: type[BaseModel],
                                        "strict": True}}
     last_error = None
     for _ in range(2):
-        response = client().chat.completions.create(
-            model=model, messages=messages, response_format=response_format,
-            max_completion_tokens=max_tokens, **_reasoning_args(model))
+        try:
+            response = client().chat.completions.create(
+                model=model, messages=messages, response_format=response_format,
+                max_completion_tokens=max_tokens, **_reasoning_args(model))
+        except APIStatusError as e:
+            # 413: prompt + output cap exceeds the free tier's tokens-per-minute; retry smaller.
+            if e.status_code != 413 or max_tokens <= 3000:
+                raise
+            max_tokens = 3000
+            continue
         USAGE[f"{model} input"] += response.usage.prompt_tokens
         USAGE[f"{model} output"] += response.usage.completion_tokens
         try:

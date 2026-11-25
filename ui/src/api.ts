@@ -30,6 +30,12 @@ export interface Job {
   result: Result | null;
 }
 
+export interface SampleInfo {
+  name: string;
+  title: string;
+  about: string;
+}
+
 export class ApiError extends Error {}
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
@@ -53,6 +59,8 @@ export const api = {
   health: () => call<{ status: string; model: string }>("/health"),
   licenses: () => call<License[]>("/licenses"),
   history: () => call<JobSummary[]>("/recommendations"),
+  samples: () => call<SampleInfo[]>("/samples"),
+  sample: (name: string) => call<unknown>(`/samples/${encodeURIComponent(name)}`),
   job: (id: string) => call<Job>(`/recommendations/${id}`),
   recommend: (description: string, manifest: { name: string; content: string } | null) =>
     call<JobSummary>("/recommendations", {
