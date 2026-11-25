@@ -1,0 +1,15 @@
+# Keep the build context small and secrets out. Only what the Dockerfile copies is needed.
+*
+!Dockerfile
+!requirements.txt
+!licensewise/
+!data/processed/licenses.json
+!data/processed/spdx_ids.json
+!examples/samples/
+!models/deberta-v3-large-license-nli/
+!ui/
+ui/node_modules
+ui/dist
+**/__pycache__
+**/.DS_Store
+.env

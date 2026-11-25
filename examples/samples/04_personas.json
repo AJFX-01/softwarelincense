@@ -1,0 +1,39 @@
+{
+  "_title": "Personas",
+  "_about": [
+    "A persona is who is 'speaking' in a description. The LLM that writes the descriptions must",
+    "use a different persona and project type for each one of a profile, so the same",
+    "requirements appear in different words (a founder says 'brand assets', a hobbyist says 'my",
+    "character names'). This tests that the system understands meaning, not keywords. Personas",
+    "are free text chosen by the writing model (qwen3.8-27b), not a fixed list."
+  ],
+  "personas_for_this_profile": [
+    {
+      "desc_id": "P005-012",
+      "persona": "Student"
+    },
+    {
+      "desc_id": "P005-013",
+      "persona": "Startup Founder"
+    },
+    {
+      "desc_id": "P005-014",
+      "persona": "Hobbyist"
+    }
+  ],
+  "persona_count_all_descriptions": 113,
+  "some_other_personas": [
+    "A freelance web developer creating a modular project management suite.",
+    "A startup founder launching a B2B analytics platform.",
+    "A university researcher releasing a collaborative scientific simulation engine.",
+    "Academic Researcher",
+    "Academic Researcher in Bioinformatics",
+    "Academic Researcher in DevOps Tools",
+    "Bioinformatics researcher",
+    "Bootstrapped startup founder building a B2B SaaS",
+    "CS Student",
+    "Company Engineer",
+    "Data Science Team Lead at a Consulting Firm",
+    "Data Scientist at a mid-sized fintech"
+  ]
+}

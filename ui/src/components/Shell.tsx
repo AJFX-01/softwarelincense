@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Bell, BookOpen, Clock, Plus, Scale, Settings, Terminal, Workflow } from "lucide-react";
+import { Bell, BookOpen, Clock, FileBraces, Plus, Scale, Settings, Terminal, Workflow } from "lucide-react";
 import type { Page } from "../types";
 import { useBackendOnline } from "../api";
 
@@ -16,6 +16,7 @@ const NAV: { group: string; items: { page: Page; label: string; icon: ReactNode 
     items: [
       { page: "licenses", label: "License catalogue", icon: <BookOpen size={17} /> },
       { page: "pipeline", label: "Pipeline & evaluation", icon: <Workflow size={17} /> },
+      { page: "samples", label: "Data samples", icon: <FileBraces size={17} /> },
     ],
   },
 ];
@@ -25,6 +26,7 @@ const PAGE_TITLES: Record<Page, { title: string; subtitle: string }> = {
   history: { title: "History", subtitle: "Previous recommendations" },
   licenses: { title: "License catalogue", subtitle: "34 OSI-approved software licenses in scope" },
   pipeline: { title: "Pipeline & evaluation", subtitle: "How v1 works and how well it does" },
+  samples: { title: "Data samples", subtitle: "What each kind of data looks like, from the real files" },
 };
 
 export function Sidebar({ page, onNavigate }: { page: Page; onNavigate: (p: Page) => void }) {

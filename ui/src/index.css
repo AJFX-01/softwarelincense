@@ -214,3 +214,32 @@ mark { background: var(--mark); padding: 0 1px; }
   .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .topbar .pill.mono { display: none; }
 }
+
+/* ---------- data samples ---------- */
+.samples { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 20px; align-items: start; }
+.sample-nav { display: flex; flex-direction: column; padding: 6px; position: sticky; top: 16px; }
+.sample-pick { text-align: left; padding: 8px 10px; border-radius: 6px; border: 1px solid transparent; display: flex; gap: 8px; }
+.sample-pick:hover { background: var(--hover); }
+.sample-pick.active { border-color: var(--line-strong); font-weight: 600; }
+.sample-hint { padding: 6px 10px 4px; margin-top: 4px; border-top: 1px solid var(--divider); }
+.sample-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.sample-fields { margin: 12px 0 0; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.sample-row { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 12px; }
+.sample-row dt { color: var(--ink-2); padding-top: 1px; overflow-wrap: anywhere; }
+.sample-row dd { margin: 0; min-width: 0; }
+.sample-row dd > .sample-fields { margin: 0; padding-left: 12px; border-left: 2px solid var(--divider); }
+.sample-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.sample-about { display: flex; gap: 8px; align-items: flex-start; background: var(--hover); border-radius: var(--radius); padding: 10px 12px; color: var(--ink-2); }
+.sample-about svg { margin-top: 3px; }
+.sample-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.sample-list { display: flex; flex-direction: column; gap: 8px; }
+.sample-item { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; }
+.sample-item > .sample-fields { margin: 0; }
+@media (max-width: 900px) {
+  .samples { grid-template-columns: 1fr; }
+  .sample-nav { position: static; }
+  .sample-row { grid-template-columns: 1fr; gap: 2px; }
+}
+.sample-group > dt { color: var(--ink-2); margin-bottom: 6px; }
+.sample-group > dd { margin: 0; padding-left: 12px; border-left: 2px solid var(--divider); }
+.sample-group > dd > .sample-fields { margin: 0; }

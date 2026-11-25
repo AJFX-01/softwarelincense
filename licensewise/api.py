@@ -227,3 +227,39 @@ def get(job_id: str):
         queued_ahead = sum(j["status"] == "queued" and j["created_at"] < job["created_at"]
                            for j in _jobs.values()) if job["status"] == "queued" else 0
         return {**{k: v for k, v in job.items() if k != "key"}, "queued_ahead": queued_ahead}
+
+
+SAMPLES = ROOT / "examples" / "samples"  # written by scripts/build_examples.py
+
+
+def _sample_files():
+    return {p.stem: p for p in sorted(SAMPLES.glob("*.json"))}
+
+
+@app.get("/api/samples")
+def samples():
+    """The data samples, for the UI's Data samples page: name, title and the _about note."""
+    out = []
+    for name, path in _sample_files().items():
+        data = json.loads(path.read_text())
+        about = data.get("_about", "")
+        out.append({"name": name, "title": data.get("_title", name),
+                    "about": " ".join(about) if isinstance(about, list) else about})
+    return out
+
+
+@app.get("/api/samples/{name}")
+def sample(name: str):
+    path = _sample_files().get(name)  # only listed files, so no path tricks
+    if not path:
+        raise HTTPException(404, "No sample with this name.")
+    return json.loads(path.read_text())
+
+
+# In the container (Dockerfile) the built UI is served from the same origin as the API,
+# so one URL serves both. Mounted last so every /api route above takes priority.
+_UI_DIST = ROOT / "ui" / "dist"
+if _UI_DIST.is_dir():
+    from fastapi.staticfiles import StaticFiles
+
+    app.mount("/", StaticFiles(directory=_UI_DIST, html=True), name="ui")

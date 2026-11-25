@@ -90,3 +90,13 @@ def test_bad_input_is_rejected(client, body):
 
 def test_unknown_job(client):
     assert client.get("/api/recommendations/nope").status_code == 404
+
+
+def test_samples(client):
+    items = client.get("/api/samples").json()
+    assert items and all(i["title"] and i["about"] for i in items)
+    sample = client.get(f"/api/samples/{items[0]['name']}").json()
+    assert "_about" in sample
+    # only files in examples/samples/ can be read
+    assert client.get("/api/samples/..%2F..%2F.env").status_code == 404
+    assert client.get("/api/samples/nope").status_code == 404

@@ -613,3 +613,69 @@ Interpretation:
   strengths/weaknesses, threats, future work, conclusion. Final Stage 1 numbers (n=104).
 - Built with tectonic (brew install tectonic; `tectonic -X compile main.tex` in report_ieee/).
   9 pages, no undefined references. Still to fill: Individual Contributions ([TEAM]).
+
+2026-11-19  Slides: terms to know + two real cases added after the cover
+-----------------------------------------------------------------------------------------
+- Requested: a glossary near the start, plus two real-life cases with risk and consequences.
+- New slides 2-4 in the online deck: terms 1/2 (license text, clause, label, copyleft, weak
+  copyleft, requirement, profile), terms 2/2 (description, persona, claim, quote, verdict,
+  Hit@1/Hit@3, Precision@3), and a cases slide.
+- Cases chosen to match the two failures the project targets: Linksys WRT54G / FSF v. Cisco
+  (GPL dependency inside closed firmware = conflict) and Elasticsearch (Apache-2.0 then
+  SSPL/Elastic License in 2021, OpenSearch fork, AGPL option in 2024 = wrong fit). Each card
+  ends with what LicenseWise would do (manifest conflict flag; network-use -> AGPL-3.0 s.13).
+- Definitions reuse the Phase 1 glossary (docs/phase1_slides.md) so the terms stay consistent.
+- All later footers renumbered +3; the deck now has 32 slides.
+
+2026-11-21  Slides: review feedback (plain language, data, model diagram, references)
+-----------------------------------------------------------------------------------------
+- No arrows anywhere in slide text; plain wording (team feedback: deck was hard to follow).
+- Terms 2/2: added "clause-claim pair". RQ1 says "an LLM" instead of "an open-weight LLM".
+- Related work: NLI/faithfulness and grounding rows removed (not license work); kept as a
+  one-line "methods we build on" with citations.
+- Shaw slide removed (phase2.txt lists Shaw only as a reading). Phase 1 overview slide KEPT
+  for now: phase2.txt line 2 requires a Phase 1 overview; asked the team before removing.
+- ML section: new "how the models connect" diagram (LLM stages, fine-tuned checker,
+  catalogue as different shapes); data slide rewritten (training vs test data, how made,
+  real vs synthetic, plain explanation of 5-fold cross-validation); fine-tuning slide
+  explains frozen layers. "Laptop" replaced by "development environment (Mac, 8 GB)";
+  fixed the old "16 GB" figure, which was wrong.
+- Stage 1 slide titles reworded; new References slide (23 entries). Deck: 33 slides.
+
+-----------------------------------------------------------------------------------------
+2026-11-25  Slides: appendix, "verifier", animation; container image for Azure
+-----------------------------------------------------------------------------------------
+- Slides: "checker" renamed "verifier" everywhere. Appendix A1-A7 added (labels; how a test
+  case is built, P005-013; Phase 1 vs Phase 2 prompt on the same description; a claim
+  before/after pairing; one clause gives three pairs; K, license vs template held out;
+  why t = 0.10). Step-by-step reveals on 36 slides (first block auto, then per click).
+  Deck: 40 slides.
+- Dockerfile + .dockerignore: one image, UI built with pnpm and served by FastAPI from
+  ui/dist (same origin, no proxy), CPU-only torch, fine-tuned model copied in. WHY: Azure
+  Container Apps (student credit) gives up to 8 GiB, so the 1.7 GB verifier runs there;
+  models/ is gitignored, so the image is built locally, not in CI, and pushed to GHCR.
+- GROQ_API_KEY is an Azure secret at run time, never in the image (.env excluded).
+- Model copied with --chown: model.safetensors is mode 600, so the non-root user could not
+  read it (transformers reports it as "No such file").
+- Tested locally (linux/amd64): /api/health, UI at /, /api/licenses, one verifier call OK;
+  about 1.2 GiB memory after loading. 27 tests pass.
+- docs/deploy_azure.md: 2 vCPU / 4 GiB, max 1 replica (jobs live in one process), min 0
+  replicas to save credit (cold start 1-2 min; set min 1 before a demo). Run history
+  (SQLite) is lost on restart/scale-to-zero.
+- examples/samples/: 8 JSON samples (license, requirements, profile P005, personas,
+  description P005-013, Stage 1 Phase 1 vs Phase 2 on the same description, clause-claim
+  pairs incl. human-corrected N0539, a verified claim from the SaaS demo) + README.
+  Built by scripts/build_examples.py from the real data files, each with an "_about" note.
+  WHY: one place to see what each kind of data looks like, matching appendix A2-A5.
+- UI "Data samples" page (Reference group): lists examples/samples/ and shows each file as
+  readable fields (about note, tags for IDs/labels, long text joined back into paragraphs).
+  API: GET /api/samples and /api/samples/{name} (only files in that folder). WHY no bloat:
+  files are fetched at run time, not bundled, and the page is lazy-loaded (3 KB chunk;
+  main bundle +2.5 KB). ?page=samples&sample=<name> opens one directly. Docker image
+  now copies examples/samples/.
+- .github/workflows/deploy.yml: on push to main (or by hand), build the image on GitHub,
+  push to GHCR (tag = commit SHA + latest), az containerapp update. WHY main only: only
+  reviewed, CI-passing code goes live, and the student credit is not spent on every push.
+  The model comes from GitHub Release "model-v1" (models/ is gitignored); Azure login is
+  the AZURE_CREDENTIALS secret (service principal scoped to licensewise-rg). Dockerfile
+  label links the GHCR package to the repo. Runtime image unchanged, so no speed change.

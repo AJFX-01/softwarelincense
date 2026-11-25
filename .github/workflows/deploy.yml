@@ -1,0 +1,70 @@
+# Deploy: on every push to main (a merged development PR), build the image, push it to
+# GHCR and point the Azure Container App at it. Can also be started by hand (Actions tab).
+# One-time setup (docs/deploy_azure.md, "Automatic deploys"):
+# - the fine-tuned model attached to the GitHub Release "model-v1" (models/ is gitignored);
+# - the repository secret AZURE_CREDENTIALS (a login limited to licensewise-rg);
+# - the Container App already created once by hand.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# One deploy at a time; a newer push waits instead of racing the older one.
+concurrency: deploy
+
+permissions:
+  contents: read   # checkout and download the model from the release
+  packages: write  # push the image to GHCR
+
+env:
+  IMAGE: ghcr.io/ajfx-01/licensewise   # GHCR names must be lowercase
+  MODEL_RELEASE: model-v1
+  MODEL_FILE: deberta-v3-large-license-nli.tar
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download the fine-tuned model
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$MODEL_RELEASE" --pattern "$MODEL_FILE" --dir "$RUNNER_TEMP"
+          mkdir -p models
+          tar -xf "$RUNNER_TEMP/$MODEL_FILE" -C models
+          ls -la models/deberta-v3-large-license-nli
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      # Tagged with the commit, so every deploy is a new Azure revision, plus latest.
+      # The layer cache makes later builds that change only code take a few minutes.
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Update the Container App
+        run: |
+          az containerapp update -n licensewise -g licensewise-rg \
+            --image "$IMAGE:${{ github.sha }}" \
+            --query properties.configuration.ingress.fqdn -o tsv

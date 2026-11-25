@@ -1,0 +1,29 @@
+{
+  "_title": "A profile",
+  "_about": [
+    "A profile is a set of requirements (77 profiles in",
+    "data/processed/scenarios/profiles.jsonl). 'gold' is the list of correct licenses: every",
+    "in-scope license whose labels meet all the requirements. It is computed from the labels,",
+    "not chosen by a person. Here: trademark protected means the license has the",
+    "'trademark-use' limitation; document changes not required means it lacks the",
+    "'document-changes' condition."
+  ],
+  "profile": {
+    "profile_id": "P005",
+    "constraints": {
+      "trademark": "protected",
+      "document_changes": "not_required"
+    },
+    "requirements": [
+      "The license must explicitly NOT grant rights to the project's name, logos, or trademarks.",
+      "People who modify the code should not be obliged to document or mark what they changed."
+    ],
+    "gold": [
+      "MPL-2.0",
+      "MS-PL",
+      "MS-RL",
+      "MulanPSL-2.0"
+    ],
+    "gold_size": 4
+  }
+}

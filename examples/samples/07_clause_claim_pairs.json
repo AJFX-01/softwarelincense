@@ -1,0 +1,87 @@
+{
+  "_title": "Clause-claim pairs",
+  "_about": [
+    "Clause-claim pairs train and test the verifier (data/processed/nli/pairs.jsonl, 729 pairs",
+    "= 243 clause-label matches x 3). 'premise' is the clause from the license that expresses",
+    "the label; 'hypothesis' is the claim. For each match we write three claims from templates,",
+    "so the right answer is known in advance: entailment (a true sentence for this label),",
+    "contradiction (the same sentence made opposite) and neutral (a true sentence for a",
+    "different label, which this clause does not say). Two people checked 146 pairs by hand",
+    "(97.9% agreed)."
+  ],
+  "pairs_from_one_clause": [
+    {
+      "license": "MIT",
+      "category": "limitations",
+      "label": "warranty",
+      "premise": [
+        "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,",
+        "INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR",
+        "PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE",
+        "FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR",
+        "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER",
+        "DEALINGS IN THE SOFTWARE."
+      ],
+      "hypothesis": "The software is provided without any warranty.",
+      "nli_label": "entailment",
+      "pair_id": "N0491"
+    },
+    {
+      "license": "MIT",
+      "category": "limitations",
+      "label": "warranty",
+      "premise": [
+        "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,",
+        "INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR",
+        "PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE",
+        "FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR",
+        "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER",
+        "DEALINGS IN THE SOFTWARE."
+      ],
+      "hypothesis": "The software comes with a warranty.",
+      "nli_label": "contradiction",
+      "pair_id": "N0492"
+    },
+    {
+      "license": "MIT",
+      "category": "limitations",
+      "label": "warranty",
+      "premise": [
+        "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,",
+        "INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR",
+        "PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE",
+        "FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR",
+        "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER",
+        "DEALINGS IN THE SOFTWARE."
+      ],
+      "hypothesis": "You must keep the copyright and license notices when you distribute the software.",
+      "hypothesis_topic": "include-copyright",
+      "nli_label": "neutral",
+      "pair_id": "N0498"
+    }
+  ],
+  "_about_human_check": [
+    "A pair the people checking corrected (from data/processed/nli/review_labelled.csv). It was",
+    "built as neutral (a sentence for a different label), but this clause does say it, so the",
+    "right answer is entailment. 'auto_label' is the verdict from how the pair was built;",
+    "'human_label' is the checked one, which is used for training and testing."
+  ],
+  "human_corrected_pair": {
+    "pair_id": "N0539",
+    "license": "MPL-2.0",
+    "label": "disclose-source",
+    "premise": [
+      "3. Responsibilities ------------------- 3.1. Distribution of Source Form All distribution",
+      "of Covered Software in Source Code Form, including any Modifications that You create or to",
+      "which You contribute, must be under the terms of this License. You must inform recipients",
+      "that the Source Code Form of the Covered Software is governed by the terms of this",
+      "License, and how they can obtain a copy of this License. You may not attempt to alter or",
+      "restrict the recipients' rights in the Source Code Form."
+    ],
+    "hypothesis": "Copies of the source code must keep the copyright and license notices.",
+    "auto_label": "neutral",
+    "human_label": "entailment",
+    "notes": "",
+    "carried": "unchanged"
+  }
+}
