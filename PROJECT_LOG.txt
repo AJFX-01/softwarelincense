@@ -676,6 +676,8 @@ Interpretation:
 - .github/workflows/deploy.yml: on push to main (or by hand), build the image on GitHub,
   push to GHCR (tag = commit SHA + latest), az containerapp update. WHY main only: only
   reviewed, CI-passing code goes live, and the student credit is not spent on every push.
-  The model comes from GitHub Release "model-v1" (models/ is gitignored); Azure login is
-  the AZURE_CREDENTIALS secret (service principal scoped to licensewise-rg). Dockerfile
+  The model comes from GitHub Release "model-v1" (models/ is gitignored). Azure login:
+  user-assigned managed identity + GitHub OIDC federated credential (main branch only),
+  Contributor on licensewise-rg. WHY: the student tenant refused app registration
+  (create-for-rbac: insufficient privileges); OIDC also means no stored password. Dockerfile
   label links the GHCR package to the repo. Runtime image unchanged, so no speed change.

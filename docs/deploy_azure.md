@@ -111,17 +111,35 @@ new release**. Type the new tag `model-v1`, attach `deberta-v3-large-license-nli
 (838 MB, under GitHub's 2 GB limit) and publish. If you retrain the model, upload it to
 a new release and change `MODEL_RELEASE` in the workflow.
 
-**B. Give GitHub an Azure login, limited to this resource group.**
+**B. Let GitHub sign in to Azure.** Student accounts usually cannot register apps
+(`az ad sp create-for-rbac` fails with "Insufficient privileges"), so GitHub signs in as
+a managed identity instead. A managed identity is an ordinary resource in
+`licensewise-rg`. It trusts only this repo's `main` branch, and no password is stored
+anywhere.
 
 ```bash
 SUB=$(az account show --query id -o tsv)
-az ad sp create-for-rbac --name licensewise-deploy --role contributor \
-  --scopes "/subscriptions/$SUB/resourceGroups/licensewise-rg" --json-auth
+az identity create -n licensewise-deploy -g licensewise-rg
+PRINCIPAL=$(az identity show -n licensewise-deploy -g licensewise-rg --query principalId -o tsv)
+az role assignment create --assignee-object-id "$PRINCIPAL" --assignee-principal-type ServicePrincipal \
+  --role Contributor --scope "/subscriptions/$SUB/resourceGroups/licensewise-rg"
+az identity federated-credential create --name github-main \
+  --identity-name licensewise-deploy -g licensewise-rg \
+  --issuer https://token.actions.githubusercontent.com \
+  --subject repo:AJFX-01/softwarelincense:ref:refs/heads/main \
+  --audiences api://AzureADTokenExchange
+# The three values GitHub needs:
+az identity show -n licensewise-deploy -g licensewise-rg --query clientId -o tsv   # AZURE_CLIENT_ID
+az account show --query tenantId -o tsv                                            # AZURE_TENANT_ID
+echo "$SUB"                                                                        # AZURE_SUBSCRIPTION_ID
 ```
 
-Copy the whole JSON it prints. In the GitHub repo, go to **Settings**, then **Secrets
-and variables**, then **Actions**, and choose **New repository secret**. Name it
-`AZURE_CREDENTIALS` and paste the JSON. Do not save the JSON anywhere else.
+In the GitHub repo, go to **Settings**, then **Secrets and variables**, then **Actions**.
+Add three repository secrets with exactly those names and values. They are IDs, not
+passwords, but keeping them as secrets keeps them out of the logs.
+
+If the role assignment is refused, your account is not an Owner of the subscription.
+Check under **Subscriptions**, then **Access control (IAM)** in the Azure portal.
 
 **C. Let the workflow push to the image package.** This applies only if you already
 pushed the image from your Mac. On GitHub, open your profile, then **Packages**, then
